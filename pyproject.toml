@@ -1,0 +1,18 @@
+[project]
+name = "todo"
+version = "0.1.0"
+description = "In-memory command-line todo application"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "mypy>=1.5.0",
+    "ruff>=0.0.290",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

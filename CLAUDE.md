@@ -208,3 +208,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Python 3.13+ + UV (package manager), no external runtime dependencies required (001-todo-console-app)
+- In-memory (Python list/dict data structures) - no persistence (001-todo-console-app)
+
+## Recent Changes
+- 001-todo-console-app: Added Python 3.13+ + UV (package manager), no external runtime dependencies required
