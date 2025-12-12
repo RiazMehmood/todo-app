@@ -1,0 +1,21 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": {
+      "description": "Production backend API URL (e.g., https://your-backend.railway.app)",
+      "required": true
+    },
+    "BETTER_AUTH_SECRET": {
+      "description": "JWT secret (MUST match backend secret)",
+      "required": true
+    },
+    "BETTER_AUTH_URL": {
+      "description": "Production frontend URL (e.g., https://your-app.vercel.app)",
+      "required": true
+    }
+  }
+}

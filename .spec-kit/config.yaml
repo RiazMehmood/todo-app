@@ -1,0 +1,115 @@
+# Spec-Kit Configuration for Todo Hackathon II
+# Evolution of Todo: From CLI to Distributed Cloud-Native AI Systems
+
+name: hackathon-todo
+version: "2.0"
+description: "A todo application evolving from console app to AI-powered cloud-native chatbot"
+
+# Directory structure configuration
+structure:
+  specs_dir: specs
+  features_dir: specs/features
+  api_dir: specs/api
+  database_dir: specs/database
+  ui_dir: specs/ui
+
+# Hackathon phases with features
+phases:
+  - name: phase1-console
+    description: "In-Memory Python Console App"
+    features: [task-crud]
+    status: completed
+    technologies:
+      - Python 3.13+
+      - UV (package manager)
+      - In-memory storage
+
+  - name: phase2-web
+    description: "Full-Stack Web Application"
+    features: [task-crud, authentication]
+    status: in_progress
+    technologies:
+      - Next.js 16+ (App Router)
+      - FastAPI
+      - SQLModel
+      - Neon Serverless PostgreSQL
+      - Better Auth
+
+  - name: phase3-chatbot
+    description: "AI-Powered Todo Chatbot"
+    features: [task-crud, authentication, chatbot]
+    status: planned
+    technologies:
+      - OpenAI ChatKit
+      - OpenAI Agents SDK
+      - Official MCP SDK
+
+  - name: phase4-kubernetes
+    description: "Local Kubernetes Deployment"
+    features: [task-crud, authentication, chatbot, containerization]
+    status: planned
+    technologies:
+      - Docker
+      - Minikube
+      - Helm Charts
+      - kubectl-ai
+      - kagent
+
+  - name: phase5-cloud
+    description: "Advanced Cloud Deployment"
+    features: [task-crud, authentication, chatbot, containerization, event-driven, advanced-features]
+    status: planned
+    technologies:
+      - DigitalOcean DOKS / GKE / AKS
+      - Kafka (Redpanda Cloud)
+      - Dapr
+      - CI/CD (GitHub Actions)
+
+# Feature definitions
+features:
+  task-crud:
+    name: "Task CRUD Operations"
+    description: "Create, Read, Update, Delete, and Mark Complete tasks"
+    level: basic
+
+  authentication:
+    name: "User Authentication"
+    description: "User signup/signin with JWT token management"
+    level: intermediate
+
+  chatbot:
+    name: "AI Chatbot Interface"
+    description: "Natural language task management via MCP tools"
+    level: advanced
+
+  containerization:
+    name: "Containerization & Orchestration"
+    description: "Docker containers deployed on Kubernetes"
+    level: advanced
+
+  event-driven:
+    name: "Event-Driven Architecture"
+    description: "Kafka-based event streaming for reminders and recurring tasks"
+    level: advanced
+
+  advanced-features:
+    name: "Advanced Features"
+    description: "Priorities, tags, search, filter, sort, recurring tasks, due dates"
+    level: advanced
+
+# Current context
+current_phase: phase2-web
+current_branch: 001-todo-console-app
+
+# Development workflow
+workflow:
+  spec_first: true
+  ai_agent: Claude Code
+  spec_toolkit: Spec-Kit Plus
+
+# Quality gates
+quality:
+  require_specs: true
+  require_tests: false  # Can be enabled per phase
+  require_phr: true
+  require_adr_for_significant_decisions: true

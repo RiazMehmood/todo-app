@@ -196,22 +196,151 @@ If ALL true, suggest:
 
 Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
 
-## Basic Project Structure
+## Project Structure (Monorepo)
 
-- `.specify/memory/constitution.md` — Project principles
-- `specs/<feature>/spec.md` — Feature requirements
-- `specs/<feature>/plan.md` — Architecture decisions
-- `specs/<feature>/tasks.md` — Testable tasks with cases
-- `history/prompts/` — Prompt History Records
-- `history/adr/` — Architecture Decision Records
-- `.specify/` — SpecKit Plus templates and scripts
+This is a **monorepo** containing both frontend and backend for Phase II and beyond.
+
+### Phase II: Full-Stack Web Application
+
+```
+todo/
+├── .spec-kit/
+│   └── config.yaml              # Spec-Kit configuration with phases
+├── specs/
+│   ├── overview.md              # Project overview and status
+│   ├── architecture.md          # System architecture
+│   ├── features/                # Feature specifications (what to build)
+│   │   ├── task-crud.md
+│   │   └── authentication.md
+│   ├── api/                     # API endpoint specifications
+│   │   └── rest-endpoints.md
+│   ├── database/                # Database schema specifications
+│   │   └── schema.md
+│   └── ui/                      # UI component and page specifications
+│       ├── components.md
+│       └── pages.md
+├── frontend/                    # Next.js 16+ application
+│   ├── CLAUDE.md                # Frontend-specific guidelines
+│   ├── app/                     # Next.js App Router
+│   ├── components/
+│   └── lib/
+├── backend/                     # FastAPI application
+│   ├── CLAUDE.md                # Backend-specific guidelines
+│   ├── src/
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── routes/
+│   │   └── middleware/
+│   └── pyproject.toml
+├── .specify/                    # SpecKit Plus templates
+│   ├── memory/
+│   │   └── constitution.md
+│   └── templates/
+├── history/
+│   ├── prompts/
+│   │   ├── 001-todo-console-app/  # Phase 1 history
+│   │   ├── 002-todo-web-app/      # Phase 2 history
+│   │   ├── constitution/
+│   │   └── general/
+│   └── adr/                     # Architecture Decision Records
+└── CLAUDE.md                    # This file (root guidelines)
+```
+
+## How to Use Specs
+
+### Spec-Driven Development Workflow
+
+1. **Read Spec First**: Always read the relevant spec before implementing
+   - Reference specs with: `@specs/features/task-crud.md`
+   - Check `@specs/overview.md` for current project status
+   - Review `@specs/architecture.md` for system design
+
+2. **Implement from Spec**: Generate code based on specifications
+   - Frontend implementation: See `@frontend/CLAUDE.md`
+   - Backend implementation: See `@backend/CLAUDE.md`
+
+3. **Update Specs**: If requirements change, update specs before code
+
+4. **Create PHR**: Document the implementation in prompt history
+
+## Development Workflow
+
+```
+User Request
+     │
+     ▼
+Read Relevant Spec (@specs/features/...)
+     │
+     ▼
+Implement Code (frontend/ or backend/)
+     │
+     ▼
+Test and Validate
+     │
+     ▼
+Create PHR (history/prompts/<feature>/)
+```
+
+## Technology Stack
+
+### Phase I (Completed)
+- Python 3.13+ with UV package manager
+- In-memory storage (no persistence)
+- CLI interface
+
+### Phase II (Current - In Progress)
+- **Frontend**: Next.js 16+ (App Router), TypeScript, Tailwind CSS
+- **Backend**: Python FastAPI, SQLModel ORM
+- **Database**: Neon Serverless PostgreSQL
+- **Authentication**: Better Auth with JWT tokens
+- **Deployment**: Vercel (frontend), Cloud provider (backend)
+
+### Future Phases
+- **Phase III**: OpenAI ChatKit, Agents SDK, MCP
+- **Phase IV**: Docker, Kubernetes (Minikube), Helm
+- **Phase V**: Kafka, Dapr, Cloud deployment (DOKS/GKE/AKS)
+
+## Key Constraints
+
+1. **Spec-First**: Cannot write code manually; must refine specs until correct output
+2. **Multi-user**: All features support multiple users with data isolation
+3. **Security**: JWT authentication required for all API endpoints
+4. **Stateless**: Backend has no in-memory state; all data in database
+
+## Commands
+
+### Frontend Development
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:3000
+```
+
+### Backend Development
+```bash
+cd backend
+uv pip install -r pyproject.toml
+uvicorn src.main:app --reload  # http://localhost:8000
+```
+
+### Database
+- Connection string in `.env` file
+- See `@specs/database/schema.md` for schema
 
 ## Code Standards
-See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
-## Active Technologies
-- Python 3.13+ + UV (package manager), no external runtime dependencies required (001-todo-console-app)
-- In-memory (Python list/dict data structures) - no persistence (001-todo-console-app)
+See `.specify/memory/constitution.md` for:
+- Code quality principles
+- Testing requirements
+- Performance guidelines
+- Security best practices
+- Architecture patterns
 
 ## Recent Changes
-- 001-todo-console-app: Added Python 3.13+ + UV (package manager), no external runtime dependencies required
+- 002-todo-web-app: Added Neon Serverless PostgreSQL (cloud-hosted, auto-scaling)
+
+- **Phase II Started**: Transitioning to full-stack web application
+- Added monorepo structure (frontend/ + backend/)
+
+## Active Technologies
+- Neon Serverless PostgreSQL (cloud-hosted, auto-scaling) (002-todo-web-app)
