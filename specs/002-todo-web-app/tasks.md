@@ -526,16 +526,16 @@ This is the minimum to deliver "working todo app with multi-user support."
 
 ### Backend Deployment to Railway.app
 
-- [ ] T132 [DEPLOY] Create Railway.app account and new project for backend
-- [ ] T133 [DEPLOY] Connect Railway project to GitHub repository (002-todo-web-app branch)
-- [ ] T134 [DEPLOY] Configure Railway to deploy from backend/ directory (railway.toml or settings)
-- [ ] T135 [DEPLOY] Add environment variables to Railway project (DATABASE_URL, BETTER_AUTH_SECRET, CORS_ORIGINS)
+- [X] T132 [DEPLOY] Create Railway.app account and new project for backend
+- [X] T133 [DEPLOY] Connect Railway project to GitHub repository (002-todo-web-app branch)
+- [X] T134 [DEPLOY] Configure Railway to deploy from backend/ directory (railway.json configured)
+- [X] T135 [DEPLOY] Add environment variables to Railway project (DATABASE_URL, BETTER_AUTH_SECRET, CORS_ORIGINS)
 - [ ] T136 [DEPLOY] Update CORS_ORIGINS to include Vercel frontend URL (https://*.vercel.app)
-- [ ] T137 [DEPLOY] Configure Nixpacks or Dockerfile for Python 3.13+ with UV package manager
-- [ ] T138 [DEPLOY] Set Railway start command (uvicorn src.main:app --host 0.0.0.0 --port $PORT)
-- [ ] T139 [DEPLOY] Verify Railway deployment succeeds and health endpoint returns 200 OK
+- [X] T137 [DEPLOY] Configure Nixpacks for Python 3.13+ with UV package manager (backend/railway.json)
+- [X] T138 [DEPLOY] Set Railway start command (uvicorn src.main:app --host 0.0.0.0 --port $PORT)
+- [X] T139 [DEPLOY] Verify Railway deployment succeeds and health endpoint returns 200 OK
 - [ ] T140 [DEPLOY] Test Railway backend URL with Postman or curl (GET /health)
-- [ ] T141 [DEPLOY] Document Railway backend URL in .env.example and deployment docs
+- [ ] T141 [DEPLOY] Document Railway backend URL in deployment docs
 
 ### Frontend Deployment to Vercel
 
@@ -545,8 +545,8 @@ This is the minimum to deliver "working todo app with multi-user support."
   - NEXT_PUBLIC_API_URL (Railway backend URL from T141)
   - BETTER_AUTH_SECRET (same value as backend)
   - BETTER_AUTH_URL (Vercel deployment URL, will be auto-assigned)
-- [ ] T145 [DEPLOY] Fix frontend/vercel.json schema validation errors (remove invalid env config)
-- [ ] T146 [DEPLOY] Fix frontend/tsconfig.json jsx setting (change from "react-jsx" to "preserve")
+- [X] T145 [DEPLOY] Fix frontend/vercel.json schema validation errors (removed invalid env config - commit ee00c9c)
+- [X] T146 [DEPLOY] Fix frontend/tsconfig.json jsx setting (changed to "preserve" - commit 96293e5)
 - [ ] T147 [DEPLOY] Trigger Vercel deployment and monitor build logs
 - [ ] T148 [DEPLOY] Verify Vercel build completes successfully without errors
 - [ ] T149 [DEPLOY] Test Vercel frontend URL in browser (verify login/signup pages load)
@@ -567,22 +567,22 @@ This is the minimum to deliver "working todo app with multi-user support."
 
 ### Deployment Documentation
 
-- [ ] T161 [DEPLOY] Create deployment guide in specs/002-todo-web-app/deployment.md
-- [ ] T162 [DEPLOY] Document Railway deployment steps (account setup, env vars, configuration)
-- [ ] T163 [DEPLOY] Document Vercel deployment steps (account setup, env vars, build settings)
-- [ ] T164 [DEPLOY] Document environment variable requirements and how to obtain values
-- [ ] T165 [DEPLOY] Add troubleshooting section for common deployment issues
+- [X] T161 [DEPLOY] Create deployment guide in specs/002-todo-web-app/deployment.md
+- [X] T162 [DEPLOY] Document Railway deployment steps (account setup, env vars, configuration)
+- [X] T163 [DEPLOY] Document Vercel deployment steps (account setup, env vars, build settings)
+- [X] T164 [DEPLOY] Document environment variable requirements and how to obtain values
+- [X] T165 [DEPLOY] Add troubleshooting section for common deployment issues
 - [ ] T166 [DEPLOY] Update README.md with production URLs and deployment status
-- [ ] T167 [DEPLOY] Create deployment checklist in specs/002-todo-web-app/checklists/deployment.md
+- [X] T167 [DEPLOY] Create deployment checklist in specs/002-todo-web-app/checklists/deployment.md
 
 ### Monitoring & Maintenance
 
 - [ ] T168 [DEPLOY] Set up Railway deployment notifications (email or Slack)
 - [ ] T169 [DEPLOY] Set up Vercel deployment notifications
-- [ ] T170 [DEPLOY] Configure automatic deployments from GitHub (push to 002-todo-web-app → auto-deploy)
+- [X] T170 [DEPLOY] Configure automatic deployments from GitHub (Railway and Vercel auto-deploy on push)
 - [ ] T171 [DEPLOY] Test rollback procedure (revert to previous deployment if issues occur)
-- [ ] T172 [DEPLOY] Document how to view Railway logs for debugging
-- [ ] T173 [DEPLOY] Document how to view Vercel build logs for debugging
+- [X] T172 [DEPLOY] Document how to view Railway logs for debugging (documented in deployment.md)
+- [X] T173 [DEPLOY] Document how to view Vercel build logs for debugging (documented in deployment.md)
 
 **Acceptance**:
 - Backend deployed to Railway.app with public URL
