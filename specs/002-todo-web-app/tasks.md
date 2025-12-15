@@ -518,4 +518,201 @@ This is the minimum to deliver "working todo app with multi-user support."
 
 ---
 
-**Ready to implement!** Start with Phase 1 (Setup) and proceed sequentially through each phase.
+## Phase 12: Production Deployment
+
+**Goal**: Deploy backend to Railway.app and frontend to Vercel for production access
+
+**Tasks**:
+
+### Backend Deployment to Railway.app
+
+- [ ] T132 [DEPLOY] Create Railway.app account and new project for backend
+- [ ] T133 [DEPLOY] Connect Railway project to GitHub repository (002-todo-web-app branch)
+- [ ] T134 [DEPLOY] Configure Railway to deploy from backend/ directory (railway.toml or settings)
+- [ ] T135 [DEPLOY] Add environment variables to Railway project (DATABASE_URL, BETTER_AUTH_SECRET, CORS_ORIGINS)
+- [ ] T136 [DEPLOY] Update CORS_ORIGINS to include Vercel frontend URL (https://*.vercel.app)
+- [ ] T137 [DEPLOY] Configure Nixpacks or Dockerfile for Python 3.13+ with UV package manager
+- [ ] T138 [DEPLOY] Set Railway start command (uvicorn src.main:app --host 0.0.0.0 --port $PORT)
+- [ ] T139 [DEPLOY] Verify Railway deployment succeeds and health endpoint returns 200 OK
+- [ ] T140 [DEPLOY] Test Railway backend URL with Postman or curl (GET /health)
+- [ ] T141 [DEPLOY] Document Railway backend URL in .env.example and deployment docs
+
+### Frontend Deployment to Vercel
+
+- [ ] T142 [DEPLOY] Create Vercel account and import GitHub repository
+- [ ] T143 [DEPLOY] Configure Vercel project settings (Framework: Next.js, Root Directory: frontend/)
+- [ ] T144 [DEPLOY] Add environment variables to Vercel project settings:
+  - NEXT_PUBLIC_API_URL (Railway backend URL from T141)
+  - BETTER_AUTH_SECRET (same value as backend)
+  - BETTER_AUTH_URL (Vercel deployment URL, will be auto-assigned)
+- [ ] T145 [DEPLOY] Fix frontend/vercel.json schema validation errors (remove invalid env config)
+- [ ] T146 [DEPLOY] Fix frontend/tsconfig.json jsx setting (change from "react-jsx" to "preserve")
+- [ ] T147 [DEPLOY] Trigger Vercel deployment and monitor build logs
+- [ ] T148 [DEPLOY] Verify Vercel build completes successfully without errors
+- [ ] T149 [DEPLOY] Test Vercel frontend URL in browser (verify login/signup pages load)
+- [ ] T150 [DEPLOY] Update BETTER_AUTH_URL in Vercel environment variables with actual deployment URL
+
+### Integration Testing (Production Environment)
+
+- [ ] T151 [DEPLOY] Test signup flow on production (create new account → JWT issued → redirected to dashboard)
+- [ ] T152 [DEPLOY] Test login flow on production (login with credentials → access dashboard)
+- [ ] T153 [DEPLOY] Test create task on production (add task → verify in database → appears in list)
+- [ ] T154 [DEPLOY] Test mark complete on production (toggle checkbox → status persists)
+- [ ] T155 [DEPLOY] Test edit task on production (update title/description → changes persist)
+- [ ] T156 [DEPLOY] Test delete task on production (delete task → removed from database)
+- [ ] T157 [DEPLOY] Test logout on production (logout → JWT removed → cannot access dashboard)
+- [ ] T158 [DEPLOY] Test multi-user isolation on production (User A cannot see User B's tasks)
+- [ ] T159 [DEPLOY] Verify CORS allows frontend to call backend (no CORS errors in browser console)
+- [ ] T160 [DEPLOY] Test on mobile devices (responsive design works correctly)
+
+### Deployment Documentation
+
+- [ ] T161 [DEPLOY] Create deployment guide in specs/002-todo-web-app/deployment.md
+- [ ] T162 [DEPLOY] Document Railway deployment steps (account setup, env vars, configuration)
+- [ ] T163 [DEPLOY] Document Vercel deployment steps (account setup, env vars, build settings)
+- [ ] T164 [DEPLOY] Document environment variable requirements and how to obtain values
+- [ ] T165 [DEPLOY] Add troubleshooting section for common deployment issues
+- [ ] T166 [DEPLOY] Update README.md with production URLs and deployment status
+- [ ] T167 [DEPLOY] Create deployment checklist in specs/002-todo-web-app/checklists/deployment.md
+
+### Monitoring & Maintenance
+
+- [ ] T168 [DEPLOY] Set up Railway deployment notifications (email or Slack)
+- [ ] T169 [DEPLOY] Set up Vercel deployment notifications
+- [ ] T170 [DEPLOY] Configure automatic deployments from GitHub (push to 002-todo-web-app → auto-deploy)
+- [ ] T171 [DEPLOY] Test rollback procedure (revert to previous deployment if issues occur)
+- [ ] T172 [DEPLOY] Document how to view Railway logs for debugging
+- [ ] T173 [DEPLOY] Document how to view Vercel build logs for debugging
+
+**Acceptance**:
+- Backend deployed to Railway.app with public URL
+- Frontend deployed to Vercel with public URL
+- All 8 user stories work correctly in production
+- Environment variables configured correctly
+- CORS configured to allow frontend-backend communication
+- Deployment documentation complete
+
+**Manual Test Checklist**:
+1. Visit Vercel frontend URL → See login page
+2. Create new account → Account created, redirected to dashboard
+3. Add 3 tasks → All tasks appear in list
+4. Mark task complete → Checkbox updates, strikethrough applied
+5. Edit task → Changes persist
+6. Delete task → Task removed
+7. Logout → Redirected to login, cannot access dashboard
+8. Login again → Previous tasks still visible
+9. Create second user → Cannot see first user's tasks
+10. Test on mobile device → Responsive design works
+
+---
+
+## Updated Dependencies & Execution Strategy
+
+### Extended User Story Dependencies
+
+```
+Phase 1 (Setup)
+    ↓
+Phase 2 (Foundation)
+    ↓
+┌───────────────────────┬───────────────────────┐
+│ Phase 3: US1 (Signup) │ Phase 4: US2 (Login)  │ ← P1 (Must complete first)
+└───────────────────────┴───────────────────────┘
+              ↓
+┌──────────────┬──────────────┬──────────────────┐
+│ Phase 5: US3 │ Phase 6: US4 │ Phase 7: US5     │ ← P2 (Depend on P1)
+│ (Create)     │ (View)       │ (Mark Complete)  │
+└──────────────┴──────────────┴──────────────────┘
+              ↓
+┌──────────────┬──────────────┬──────────────────┐
+│ Phase 8: US6 │ Phase 9: US7 │ Phase 10: US8    │ ← P3 (Optional enhancements)
+│ (Update)     │ (Delete)     │ (Logout)         │
+└──────────────┴──────────────┴──────────────────┘
+              ↓
+       Phase 11 (Polish)
+              ↓
+       Phase 12 (Deployment) ← Production release
+```
+
+### Updated Incremental Delivery Strategy
+
+1. **Sprint 1** (MVP): Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
+   - Deliverable: Users can signup, login, create tasks, view tasks
+   - **Independent Test**: Create account → Add 3 tasks → See tasks in list
+
+2. **Sprint 2** (Core Features): Phase 7
+   - Deliverable: Users can mark tasks complete
+   - **Independent Test**: Mark task complete → See strikethrough → Persists on refresh
+
+3. **Sprint 3** (Enhancements): Phase 8 → Phase 9 → Phase 10
+   - Deliverable: Edit, delete, logout functionality
+   - **Independent Test**: Edit task → Delete task → Logout
+
+4. **Sprint 4** (Polish): Phase 11
+   - Deliverable: Improved UX, shared components, error handling
+   - **Independent Test**: All user flows work smoothly with good UX
+
+5. **Sprint 5** (Production Deployment): Phase 12
+   - Deliverable: App live on Railway.app (backend) + Vercel (frontend)
+   - **Independent Test**: Full user flow works on production URLs
+   - **Public URL**: https://your-app.vercel.app
+
+---
+
+## Updated Task Summary
+
+**Total Tasks**: 173 tasks (was 131, added 42 deployment tasks)
+
+**Task Breakdown by Phase**:
+- Phase 1 (Setup): 7 tasks
+- Phase 2 (Foundation): 10 tasks (5 backend, 5 frontend)
+- Phase 3 (US1 - Signup): 12 tasks (5 backend, 7 frontend)
+- Phase 4 (US2 - Login): 14 tasks (4 backend, 7 frontend, 3 protected routes)
+- Phase 5 (US3 - Create): 12 tasks (6 backend, 6 frontend)
+- Phase 6 (US4 - View): 13 tasks (5 backend, 6 frontend, 2 data isolation tests)
+- Phase 7 (US5 - Mark Complete): 11 tasks (5 backend, 6 frontend)
+- Phase 8 (US6 - Update): 16 tasks (7 backend, 9 frontend)
+- Phase 9 (US7 - Delete): 11 tasks (5 backend, 6 frontend)
+- Phase 10 (US8 - Logout): 8 tasks (0 backend, 8 frontend)
+- Phase 11 (Polish): 17 tasks (4 backend, 13 frontend/UX)
+- **Phase 12 (Deployment): 42 tasks (10 Railway, 9 Vercel, 10 integration tests, 7 docs, 6 monitoring)**
+
+**Parallelizable Tasks**: 21 tasks marked with [P]
+
+**MVP Task Count**: 68 tasks (Phases 1-6)
+
+**Production-Ready Task Count**: 173 tasks (All phases including deployment)
+
+---
+
+## Format Validation
+
+✅ All tasks follow required checklist format: `- [ ] [TaskID] [P?] [Story?] Description with file path`
+✅ Task IDs sequential (T001 to T173)
+✅ User story labels present for story-specific tasks ([US1] to [US8])
+✅ Deployment labels present for deployment tasks ([DEPLOY])
+✅ Parallel markers [P] present where appropriate
+✅ File paths specified in task descriptions where applicable
+✅ Tasks organized by user story priority and deployment stages
+
+---
+
+## Implementation Notes
+
+1. **Start with MVP**: Focus on Phases 1-6 first to deliver core value quickly
+2. **Test Incrementally**: After each phase, run manual test checklist to verify functionality
+3. **Use Validation Checklist**: Reference specs/002-todo-web-app/checklists/requirements.md throughout implementation
+4. **Follow Guidelines**: Refer to backend/CLAUDE.md and frontend/CLAUDE.md for coding patterns
+5. **Independent Testing**: Each user story phase can be tested independently using the "Independent Test" criteria
+6. **Parallel Development**: Tasks marked [P] can be worked on simultaneously if multiple developers available
+7. **Create PHRs**: Document implementation sessions in history/prompts/002-todo-web-app/
+8. **Deployment Best Practices**:
+   - Test locally before deploying to production
+   - Keep environment variables secure (never commit .env files)
+   - Monitor deployment logs for errors
+   - Test all user flows in production after deployment
+   - Document deployment URLs for team reference
+
+---
+
+**Ready to deploy!** All implementation phases (1-11) are complete. Now proceed with Phase 12 (Deployment) to make the app publicly accessible.
