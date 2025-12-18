@@ -15,7 +15,12 @@ from dotenv import load_dotenv
 import os
 
 from .db import create_db_and_tables
-from .routes import auth, tasks
+from .routes import auth, tasks, chat
+
+# Import Phase III models for database registration
+from .models import (
+    User, Task, UserPreferences, Conversation, Message
+)
 
 # Load environment variables
 load_dotenv()
@@ -26,8 +31,8 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 # Create FastAPI application
 app = FastAPI(
     title="Todo API",
-    description="RESTful API for multi-user todo task management with JWT authentication",
-    version="2.0.0",
+    description="RESTful API for multi-user todo task management with JWT authentication and AI chatbot integration",
+    version="3.0.0-dev",  # Phase III: AI Chatbot Integration
     docs_url="/docs",  # Swagger UI at /docs
     redoc_url="/redoc",  # ReDoc at /redoc
 )
@@ -52,17 +57,18 @@ def on_startup():
     - Logs startup information
     """
     print("=" * 50)
-    print("🚀 Starting Todo API Server")
+    print("🚀 Starting Todo API Server (Phase III)")
     print("=" * 50)
-    print(f"📦 Version: 2.0.0")
+    print(f"📦 Version: 3.0.0-dev")
+    print(f"🤖 AI Chatbot: Enabled")
     print(f"🌐 CORS Origins: {', '.join(CORS_ORIGINS)}")
     print(f"📚 API Docs: http://localhost:8000/docs")
     print("=" * 50)
 
-    # Create database tables
+    # Create database tables (includes Phase III tables)
     create_db_and_tables()
 
-    print("✅ Server ready!")
+    print("✅ Server ready! AI chatbot integration active.")
     print("=" * 50)
 
 
@@ -76,10 +82,11 @@ def root():
         API welcome message and version
     """
     return {
-        "message": "Todo API - Phase II",
-        "version": "2.0.0",
+        "message": "Todo API - Phase III: AI Chatbot Integration",
+        "version": "3.0.0-dev",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "features": ["tasks", "authentication", "ai-chatbot"]
     }
 
 
@@ -95,13 +102,16 @@ def health_check():
     return {
         "status": "healthy",
         "service": "todo-api",
-        "version": "2.0.0"
+        "version": "3.0.0-dev",
+        "phase": "III",
+        "ai_enabled": os.getenv("OPENAI_API_KEY") is not None
     }
 
 
 # Register API routers
 app.include_router(auth.router)
 app.include_router(tasks.router)
+app.include_router(chat.router, prefix="/api", tags=["chat"])
 
 
 # Error handlers (optional)

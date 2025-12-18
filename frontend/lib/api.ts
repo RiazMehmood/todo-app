@@ -16,6 +16,11 @@ import {
   LoginInput,
   AuthResponse,
   ApiError,
+  UserPreferences,
+  AIOptInRequest,
+  AIPreferencesUpdate,
+  ChatMessageInput,
+  Message,
 } from './types';
 
 // API base URL from environment variable
@@ -178,5 +183,55 @@ export const api = {
   toggleTask: (userId: string, taskId: number): Promise<Task> =>
     apiCall(`/api/${userId}/tasks/${taskId}/complete`, {
       method: 'PATCH',
+    }),
+
+  // ========================================================================
+  // Phase III: AI Chatbot Integration
+  // ========================================================================
+
+  // AI Preferences
+  aiOptIn: (userId: string, data: AIOptInRequest): Promise<UserPreferences> =>
+    apiCall(`/api/auth/users/${userId}/ai/opt-in`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  aiOptOut: (userId: string, deleteHistory: boolean = false): Promise<{ message: string }> =>
+    apiCall(`/api/auth/users/${userId}/ai/opt-out?delete_history=${deleteHistory}`, {
+      method: 'POST',
+    }),
+
+  getAIPreferences: (userId: string): Promise<UserPreferences> =>
+    apiCall(`/api/auth/users/${userId}/ai/preferences`),
+
+  updateAIPreferences: (userId: string, data: AIPreferencesUpdate): Promise<UserPreferences> =>
+    apiCall(`/api/auth/users/${userId}/ai/preferences`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Chat
+  sendChatMessage: (userId: string, message: string): Promise<{
+    conversation_id: number;
+    user_message_id: number;
+    assistant_message_id: number;
+    response: string;
+    language?: string;
+    related_task_id?: number;
+  }> =>
+    apiCall(`/api/${userId}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message, stream: false }),
+    }),
+
+  getChatHistory: (userId: string): Promise<{
+    conversation_id: number;
+    messages: Message[];
+  }> =>
+    apiCall(`/api/${userId}/chat/history`),
+
+  deleteChatHistory: (userId: string): Promise<{ message: string; messages_deleted: number }> =>
+    apiCall(`/api/${userId}/chat/history`, {
+      method: 'DELETE',
     }),
 };

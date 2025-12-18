@@ -74,3 +74,70 @@ export interface AuthResponse {
 export interface ApiError {
   detail: string;
 }
+
+// ============================================================================
+// Phase III: AI Chatbot Integration Types
+// ============================================================================
+
+/**
+ * User AI preferences.
+ */
+export interface UserPreferences {
+  user_id: string;
+  ai_enabled: boolean;
+  preferred_language: 'en' | 'ur';
+  auto_detect_language: boolean;
+  voice_input_enabled: boolean;
+  privacy_consent_version?: string;
+  ai_opt_in_date?: string;
+}
+
+/**
+ * Request for AI opt-in.
+ */
+export interface AIOptInRequest {
+  privacy_consent_version?: string;
+  preferred_language?: 'en' | 'ur';
+}
+
+/**
+ * Request for updating AI preferences.
+ */
+export interface AIPreferencesUpdate {
+  preferred_language?: 'en' | 'ur';
+  auto_detect_language?: boolean;
+  voice_input_enabled?: boolean;
+}
+
+/**
+ * Chat conversation.
+ */
+export interface Conversation {
+  id: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Chat message.
+ */
+export interface Message {
+  id: number;
+  user_id: string;
+  conversation_id: number;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+  language?: 'en' | 'ur';
+  related_task_id?: number;
+  intent_detected?: string;
+  confidence_score?: number;
+}
+
+/**
+ * Chat message input.
+ */
+export interface ChatMessageInput {
+  message: string;
+}

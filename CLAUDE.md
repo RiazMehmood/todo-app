@@ -340,7 +340,5 @@ See `.specify/memory/constitution.md` for:
 - 002-todo-web-app: Added Neon Serverless PostgreSQL (cloud-hosted, auto-scaling)
 
 - **Phase II Started**: Transitioning to full-stack web application
-- Added monorepo structure (frontend/ + backend/)
 
 ## Active Technologies
-- Neon Serverless PostgreSQL (cloud-hosted, auto-scaling) (002-todo-web-app)

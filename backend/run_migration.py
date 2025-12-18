@@ -1,113 +1,52 @@
 #!/usr/bin/env python3
 """
-Database migration runner for Todo application.
-
-Usage:
-    python run_migration.py 001_add_task_indexes.sql
-    python run_migration.py all  # Run all migrations
+Standalone migration script to run 003_add_chat_tables.sql
 """
 
-import sys
 import os
-from pathlib import Path
-from sqlalchemy import text
+import sys
+from dotenv import load_dotenv
+import psycopg2
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent))
+# Load environment variables
+load_dotenv()
 
-from src.db import engine
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    print("✗ DATABASE_URL environment variable is not set")
+    sys.exit(1)
 
-def run_migration(migration_file: str):
-    """Run a single migration file."""
-    migration_path = Path(__file__).parent / "migrations" / migration_file
+try:
+    # Read the migration file
+    migration_file = "migrations/003_add_chat_tables.sql"
+    with open(migration_file, 'r') as f:
+        sql = f.read()
 
-    if not migration_path.exists():
-        print(f"❌ Migration file not found: {migration_file}")
-        return False
+    # Connect to database using psycopg2
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
 
-    print(f"Running migration: {migration_file}")
+    # Execute the migration
+    cursor.execute(sql)
+    conn.commit()
 
-    try:
-        with open(migration_path, 'r') as f:
-            sql = f.read()
+    print(f'✓ Migration {migration_file} executed successfully')
+    print('✓ Created: user_preferences, conversations, messages tables')
+    print('✓ Enhanced tasks table with AI metadata columns')
+    print('✓ Created all performance indexes')
 
-        with engine.connect() as conn:
-            # Execute the SQL migration
-            conn.execute(text(sql))
-            conn.commit()
+    cursor.close()
+    conn.close()
 
-        print(f"✓ Migration completed: {migration_file}")
-        return True
-
-    except Exception as e:
-        print(f"❌ Migration failed: {migration_file}")
-        print(f"Error: {e}")
-        return False
-
-
-def run_all_migrations():
-    """Run all migration files in order."""
-    migrations_dir = Path(__file__).parent / "migrations"
-    migration_files = sorted([
-        f.name for f in migrations_dir.glob("*.sql")
-    ])
-
-    if not migration_files:
-        print("No migration files found in migrations/")
-        return
-
-    print(f"Found {len(migration_files)} migration(s)")
-    print("-" * 50)
-
-    success_count = 0
-    for migration_file in migration_files:
-        if run_migration(migration_file):
-            success_count += 1
-        print("-" * 50)
-
-    print(f"\n✓ Completed {success_count}/{len(migration_files)} migrations")
-
-
-def verify_indexes():
-    """Verify that the indexes were created."""
-    print("\nVerifying indexes on tasks table...")
-
-    query = text("""
-        SELECT indexname, indexdef
-        FROM pg_indexes
-        WHERE tablename = 'tasks'
-        ORDER BY indexname;
-    """)
-
-    with engine.connect() as conn:
-        result = conn.execute(query)
-        indexes = result.fetchall()
-
-    if indexes:
-        print("\nIndexes found:")
-        for idx in indexes:
-            print(f"  - {idx[0]}")
-        print()
-    else:
-        print("  No indexes found")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage:")
-        print("  python run_migration.py <migration_file.sql>")
-        print("  python run_migration.py all")
-        print("\nExample:")
-        print("  python run_migration.py 001_add_task_indexes.sql")
-        sys.exit(1)
-
-    migration_arg = sys.argv[1]
-
-    if migration_arg == "all":
-        run_all_migrations()
-    else:
-        run_migration(migration_arg)
-
-    # Verify indexes after migration
-    verify_indexes()
+except FileNotFoundError:
+    print(f"✗ Migration file not found: {migration_file}")
+    sys.exit(1)
+except psycopg2.Error as e:
+    print(f'✗ Database error: {e}')
+    sys.exit(1)
+except Exception as e:
+    print(f'✗ Migration failed: {e}')
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)

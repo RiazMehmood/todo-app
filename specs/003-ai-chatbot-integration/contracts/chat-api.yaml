@@ -1,0 +1,588 @@
+openapi: 3.0.3
+info:
+  title: Todo AI Chat API
+  description: |
+    API endpoints for AI chatbot integration in todo application.
+
+    **Hackathon II Phase III Compliance:**
+    - **Basic Level (200 points)**: POST /api/{user_id}/chat endpoint (required)
+    - **Bonus Features**: Additional endpoints for opt-in, preferences, history management
+
+    **Required Technology Stack:**
+    - Frontend: OpenAI ChatKit (@openai/chatkit-react)
+    - Backend: OpenAI Agents SDK (openai-agents) + Official MCP Python SDK (mcp[cli])
+    - Database: Neon PostgreSQL with Conversation and Message tables (per Page 18)
+  version: 1.0.0
+  contact:
+    name: Todo App Team
+
+servers:
+  - url: https://todo-app-production-be56.up.railway.app
+    description: Production server
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send chat message (Hackathon Basic Level - Required)
+      description: |
+        **HACKATHON REQUIREMENT** (Page 18): Primary chat endpoint for Phase III Basic Level.
+
+        Send a message to the AI assistant and receive a response with optional task operations.
+        This endpoint handles:
+        - Natural language task creation, query, update, delete
+        - Automatic language detection (English/Urdu)
+        - Conversation management (creates/retrieves conversation automatically)
+        - Task operations via MCP tools (add_task, list_tasks, complete_task, delete_task, update_task)
+
+        **Technology Stack:**
+        - Backend processes via OpenAI Agents SDK + MCP Server
+        - Agents SDK calls MCP tools for task operations
+        - Returns AI response with conversation context
+      tags:
+        - Chat (Basic Level)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID (must match authenticated user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                conversation_id:
+                  type: integer
+                  description: Optional conversation ID to continue existing conversation
+                  example: 42
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  description: The message to send to AI
+                  example: "Add task to buy milk tomorrow"
+      responses:
+        '200':
+          description: AI response with conversation context and optional tool calls
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversation_id
+                  - response
+                  - tool_calls
+                properties:
+                  conversation_id:
+                    type: integer
+                    description: ID of the conversation (created or existing)
+                    example: 42
+                  response:
+                    type: string
+                    description: AI assistant's text response
+                    example: "I've created a task titled 'Buy milk' for tomorrow."
+                  tool_calls:
+                    type: array
+                    description: Array of MCP tool calls executed (if any)
+                    items:
+                      type: object
+                      properties:
+                        tool:
+                          type: string
+                          enum: [add_task, list_tasks, complete_task, delete_task, update_task]
+                          description: MCP tool that was called
+                        parameters:
+                          type: object
+                          description: Parameters passed to the tool
+                        result:
+                          type: object
+                          description: Result returned from the tool
+                    example:
+                      - tool: "add_task"
+                        parameters:
+                          user_id: "uuid-here"
+                          title: "Buy milk"
+                          description: "Tomorrow"
+                        result:
+                          task_id: 123
+                          status: "created"
+                          title: "Buy milk"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: AI features not enabled or user forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "AI features not enabled. Please opt-in first."
+        '503':
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "AI assistant temporarily unavailable. Please try again later."
+
+  /api/users/{user_id}/ai/opt-in:
+    post:
+      summary: Opt in to AI features (Bonus Feature)
+      description: |
+        Enable AI chat features for the authenticated user with privacy consent.
+        Required for US0 (opt-in flow) but can be simplified for Basic Level MVP.
+      tags:
+        - AI Settings (Bonus)
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - privacy_consent_version
+              properties:
+                privacy_consent_version:
+                  type: string
+                  description: Version of privacy policy user consented to
+                  example: "1.0.0"
+                preferred_language:
+                  type: string
+                  enum: [en, ur]
+                  default: en
+                  description: User's preferred language
+      responses:
+        '200':
+          description: Successfully opted in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/users/{user_id}/ai/opt-out:
+    post:
+      summary: Opt out of AI features
+      description: Disable AI chat features and optionally delete chat history
+      tags:
+        - AI Settings
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delete_chat_history:
+                  type: boolean
+                  default: false
+                  description: Whether to delete all chat history
+      responses:
+        '200':
+          description: Successfully opted out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "AI features disabled"
+                  chat_history_deleted:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/users/{user_id}/ai/preferences:
+    get:
+      summary: Get AI preferences
+      description: Retrieve user's AI feature preferences
+      tags:
+        - AI Settings
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    patch:
+      summary: Update AI preferences
+      description: Update user's AI feature preferences
+      tags:
+        - AI Settings
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferred_language:
+                  type: string
+                  enum: [en, ur]
+                auto_detect_language:
+                  type: boolean
+                voice_input_enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/users/{user_id}/chat/messages:
+    post:
+      summary: Send chat message
+      description: Send a message to the AI assistant
+      tags:
+        - Chat
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message_text
+              properties:
+                message_text:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  description: The message to send to AI
+                  example: "Add task to buy milk tomorrow"
+                language:
+                  type: string
+                  enum: [en, ur]
+                  description: Optional language override (auto-detected if not provided)
+      responses:
+        '200':
+          description: AI response with optional task action
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_message:
+                    $ref: '#/components/schemas/ChatMessage'
+                  ai_response:
+                    $ref: '#/components/schemas/ChatMessage'
+                  task_action:
+                    $ref: '#/components/schemas/TaskAction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: AI features not enabled or user forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "AI features not enabled. Please opt-in first."
+        '503':
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "AI assistant temporarily unavailable. Please try again later."
+
+    get:
+      summary: Get chat history
+      description: Retrieve user's chat message history
+      tags:
+        - Chat
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 500
+          description: Maximum number of messages to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Number of messages to skip (pagination)
+        - name: related_task_id
+          in: query
+          schema:
+            type: integer
+          description: Filter messages related to specific task
+      responses:
+        '200':
+          description: Chat history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+                  total:
+                    type: integer
+                    description: Total number of messages
+                  has_more:
+                    type: boolean
+                    description: Whether there are more messages to load
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/users/{user_id}/chat/messages/clear:
+    delete:
+      summary: Clear chat history
+      description: Delete all chat messages for the user
+      tags:
+        - Chat
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Chat history cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Chat history cleared"
+                  messages_deleted:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /api/auth/login or /api/auth/signup
+
+  parameters:
+    UserIdPath:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: User ID (must match authenticated user)
+
+  schemas:
+    UserPreferences:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        ai_enabled:
+          type: boolean
+        ai_opt_in_date:
+          type: string
+          format: date-time
+          nullable: true
+        preferred_language:
+          type: string
+          enum: [en, ur]
+        privacy_consent_version:
+          type: string
+          nullable: true
+        auto_detect_language:
+          type: boolean
+        voice_input_enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        message_text:
+          type: string
+        sender:
+          type: string
+          enum: [user, ai]
+        language:
+          type: string
+          enum: [en, ur]
+          nullable: true
+        related_task_id:
+          type: integer
+          nullable: true
+        intent_detected:
+          type: string
+          enum: [create_task, query_tasks, update_task, delete_task, mark_complete, help, other]
+          nullable: true
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          nullable: true
+
+    TaskAction:
+      type: object
+      description: Task action performed by AI (create, update, delete, etc.)
+      properties:
+        action:
+          type: string
+          enum: [created, updated, deleted, marked_complete, marked_incomplete, none]
+        task:
+          $ref: '#/components/schemas/Task'
+        confirmation_required:
+          type: boolean
+          description: Whether user must confirm this action
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+        completed:
+          type: boolean
+        created_via_ai:
+          type: boolean
+        ai_suggested_priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        original_nl_input:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: User forbidden from accessing this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: AI Settings
+    description: AI feature opt-in and preferences management
+  - name: Chat
+    description: Chat message operations and history

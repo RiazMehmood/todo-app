@@ -77,3 +77,14 @@ out/
 *.db
 *.sqlite
 *.sqlite3
+
+# AI/ML
+*.pkl
+*.h5
+*.model
+conversations.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
