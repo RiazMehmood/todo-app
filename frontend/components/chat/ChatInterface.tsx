@@ -101,7 +101,7 @@ export function ChatInterface({ userId, onTaskCreated }: ChatInterfaceProps) {
         role: 'assistant',
         content: response.response,
         created_at: new Date().toISOString(),
-        language: response.language,
+        language: response.language as 'en' | 'ur' | undefined,
         related_task_id: response.related_task_id,
       };
 
