@@ -530,40 +530,40 @@ This is the minimum to deliver "working todo app with multi-user support."
 - [X] T133 [DEPLOY] Connect Railway project to GitHub repository (002-todo-web-app branch)
 - [X] T134 [DEPLOY] Configure Railway to deploy from backend/ directory (railway.json configured)
 - [X] T135 [DEPLOY] Add environment variables to Railway project (DATABASE_URL, BETTER_AUTH_SECRET, CORS_ORIGINS)
-- [ ] T136 [DEPLOY] Update CORS_ORIGINS to include Vercel frontend URL (https://*.vercel.app)
+- [X] T136 [DEPLOY] Update CORS_ORIGINS to include Vercel frontend URL (https://*.vercel.app)
 - [X] T137 [DEPLOY] Configure Nixpacks for Python 3.13+ with UV package manager (backend/railway.json)
 - [X] T138 [DEPLOY] Set Railway start command (uvicorn src.main:app --host 0.0.0.0 --port $PORT)
 - [X] T139 [DEPLOY] Verify Railway deployment succeeds and health endpoint returns 200 OK
-- [ ] T140 [DEPLOY] Test Railway backend URL with Postman or curl (GET /health)
-- [ ] T141 [DEPLOY] Document Railway backend URL in deployment docs
+- [X] T140 [DEPLOY] Test Railway backend URL with Postman or curl (GET /health)
+- [X] T141 [DEPLOY] Document Railway backend URL in deployment docs
 
 ### Frontend Deployment to Vercel
 
-- [ ] T142 [DEPLOY] Create Vercel account and import GitHub repository
-- [ ] T143 [DEPLOY] Configure Vercel project settings (Framework: Next.js, Root Directory: frontend/)
-- [ ] T144 [DEPLOY] Add environment variables to Vercel project settings:
+- [X] T142 [DEPLOY] Create Vercel account and import GitHub repository
+- [X] T143 [DEPLOY] Configure Vercel project settings (Framework: Next.js, Root Directory: frontend/)
+- [X] T144 [DEPLOY] Add environment variables to Vercel project settings:
   - NEXT_PUBLIC_API_URL (Railway backend URL from T141)
   - BETTER_AUTH_SECRET (same value as backend)
   - BETTER_AUTH_URL (Vercel deployment URL, will be auto-assigned)
 - [X] T145 [DEPLOY] Fix frontend/vercel.json schema validation errors (removed invalid env config - commit ee00c9c)
 - [X] T146 [DEPLOY] Fix frontend/tsconfig.json jsx setting (changed to "preserve" - commit 96293e5)
-- [ ] T147 [DEPLOY] Trigger Vercel deployment and monitor build logs
-- [ ] T148 [DEPLOY] Verify Vercel build completes successfully without errors
-- [ ] T149 [DEPLOY] Test Vercel frontend URL in browser (verify login/signup pages load)
-- [ ] T150 [DEPLOY] Update BETTER_AUTH_URL in Vercel environment variables with actual deployment URL
+- [X] T147 [DEPLOY] Trigger Vercel deployment and monitor build logs
+- [X] T148 [DEPLOY] Verify Vercel build completes successfully without errors
+- [X] T149 [DEPLOY] Test Vercel frontend URL in browser (verify login/signup pages load)
+- [X] T150 [DEPLOY] Update BETTER_AUTH_URL in Vercel environment variables with actual deployment URL
 
 ### Integration Testing (Production Environment)
 
-- [ ] T151 [DEPLOY] Test signup flow on production (create new account → JWT issued → redirected to dashboard)
-- [ ] T152 [DEPLOY] Test login flow on production (login with credentials → access dashboard)
-- [ ] T153 [DEPLOY] Test create task on production (add task → verify in database → appears in list)
-- [ ] T154 [DEPLOY] Test mark complete on production (toggle checkbox → status persists)
-- [ ] T155 [DEPLOY] Test edit task on production (update title/description → changes persist)
-- [ ] T156 [DEPLOY] Test delete task on production (delete task → removed from database)
-- [ ] T157 [DEPLOY] Test logout on production (logout → JWT removed → cannot access dashboard)
-- [ ] T158 [DEPLOY] Test multi-user isolation on production (User A cannot see User B's tasks)
-- [ ] T159 [DEPLOY] Verify CORS allows frontend to call backend (no CORS errors in browser console)
-- [ ] T160 [DEPLOY] Test on mobile devices (responsive design works correctly)
+- [X] T151 [DEPLOY] Test signup flow on production (create new account → JWT issued → redirected to dashboard)
+- [X] T152 [DEPLOY] Test login flow on production (login with credentials → access dashboard)
+- [X] T153 [DEPLOY] Test create task on production (add task → verify in database → appears in list)
+- [X] T154 [DEPLOY] Test mark complete on production (toggle checkbox → status persists)
+- [X] T155 [DEPLOY] Test edit task on production (update title/description → changes persist)
+- [X] T156 [DEPLOY] Test delete task on production (delete task → removed from database)
+- [X] T157 [DEPLOY] Test logout on production (logout → JWT removed → cannot access dashboard)
+- [X] T158 [DEPLOY] Test multi-user isolation on production (User A cannot see User B's tasks)
+- [X] T159 [DEPLOY] Verify CORS allows frontend to call backend (no CORS errors in browser console)
+- [X] T160 [DEPLOY] Test on mobile devices (responsive design works correctly)
 
 ### Deployment Documentation
 
@@ -572,15 +572,15 @@ This is the minimum to deliver "working todo app with multi-user support."
 - [X] T163 [DEPLOY] Document Vercel deployment steps (account setup, env vars, build settings)
 - [X] T164 [DEPLOY] Document environment variable requirements and how to obtain values
 - [X] T165 [DEPLOY] Add troubleshooting section for common deployment issues
-- [ ] T166 [DEPLOY] Update README.md with production URLs and deployment status
+- [X] T166 [DEPLOY] Update README.md with production URLs and deployment status
 - [X] T167 [DEPLOY] Create deployment checklist in specs/002-todo-web-app/checklists/deployment.md
 
 ### Monitoring & Maintenance
 
-- [ ] T168 [DEPLOY] Set up Railway deployment notifications (email or Slack)
-- [ ] T169 [DEPLOY] Set up Vercel deployment notifications
+- [X] T168 [DEPLOY] Set up Railway deployment notifications (email or Slack)
+- [X] T169 [DEPLOY] Set up Vercel deployment notifications
 - [X] T170 [DEPLOY] Configure automatic deployments from GitHub (Railway and Vercel auto-deploy on push)
-- [ ] T171 [DEPLOY] Test rollback procedure (revert to previous deployment if issues occur)
+- [X] T171 [DEPLOY] Test rollback procedure (revert to previous deployment if issues occur)
 - [X] T172 [DEPLOY] Document how to view Railway logs for debugging (documented in deployment.md)
 - [X] T173 [DEPLOY] Document how to view Vercel build logs for debugging (documented in deployment.md)
 
