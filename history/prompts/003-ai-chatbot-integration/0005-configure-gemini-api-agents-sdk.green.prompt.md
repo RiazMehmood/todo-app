@@ -39,7 +39,7 @@ User requested to continue configuring the OpenAI Agents SDK to use OpenRouter w
 Previous context:
 - Attempted to use OpenRouter but encountered import errors with `OpenAIClient`
 - The agents SDK doesn't have `OpenAIClient` - it has `set_default_openai_client` and `set_default_openai_key`
-- User provided Gemini API key: AIzaSyBwBxqWCwIsb0XGmWxZfe90qq_lZOdxQB8
+- User provided Gemini API key: <YOUR_API_KEY_HERE>
 - Needed to configure the agents SDK to use Google's Gemini API directly via OpenAI-compatible endpoint
 
 User instruction:
@@ -48,7 +48,7 @@ we were working on this so continue it use spec driven development: I'll configu
 
 [Previous code attempts shown]
 
-> gemini api key : AIzaSyBwBxqWCwIsb0XGmWxZfe90qq_lZOdxQB8
+> gemini api key : <YOUR_API_KEY_HERE>
 
 > retry
 ```
@@ -97,7 +97,7 @@ set_default_openai_client(openai_client, use_for_tracing=False)
 ```env
 # AI Chat Configuration (Phase III)
 # Using Google Gemini API (OpenAI-compatible endpoint)
-OPENAI_API_KEY=AIzaSyBwBxqWCwIsb0XGmWxZfe90qq_lZOdxQB8
+OPENAI_API_KEY=<YOUR_API_KEY_HERE>
 OPENAI_API_BASE=https://generativelanguage.googleapis.com/v1beta/openai/
 AI_MODEL=gemini-1.5-flash
 CHAT_RATE_LIMIT_PER_USER=20

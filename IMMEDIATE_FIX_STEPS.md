@@ -33,7 +33,7 @@ I've thoroughly checked your deployment and **found the issue**:
    | Variable Name | Value | Check All Environments |
    |---------------|-------|----------------------|
    | `NEXT_PUBLIC_API_URL` | `https://todo-app-production-be56.up.railway.app` | ✅ Production, Preview, Development |
-   | `BETTER_AUTH_SECRET` | `Pph1JttVAbghDQY0481WP-IcNdokMj0RDpF6l6MroEg` | ✅ Production, Preview, Development |
+   | `BETTER_AUTH_SECRET` | `<YOUR_SECRET_KEY_HERE>` | ✅ Production, Preview, Development |
    | `BETTER_AUTH_URL` | `https://todo-app-ashy-seven-25.vercel.app` | ✅ Production only |
    | `NEXT_PUBLIC_AI_ENABLED` | `true` | ✅ Production, Preview, Development |
 

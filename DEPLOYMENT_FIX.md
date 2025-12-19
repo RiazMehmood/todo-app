@@ -14,12 +14,12 @@ Your Railway backend at `https://todo-app-production-be56.up.railway.app/` is co
 
 **Verified Environment Variables in Railway:**
 ```bash
-DATABASE_URL=postgresql://neondb_owner:npg_Rhn2tKWPLp6H@ep-frosty-dawn-ado879ad-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-BETTER_AUTH_SECRET=Pph1JttVAbghDQY0481WP-IcNdokMj0RDpF6l6MroEg
+DATABASE_URL=<YOUR_NEON_DATABASE_URL_HERE>
+BETTER_AUTH_SECRET=<YOUR_SECRET_KEY_HERE>
 CORS_ORIGINS=https://todo-app-ashy-seven-25.vercel.app
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_DAYS=7
-GEMINI_API_KEY=AIzaSyBShmnGp1VK7Jo7ojvgQbu5dysINUmAnwk
+GEMINI_API_KEY=<YOUR_GEMINI_API_KEY_HERE>
 AI_MODEL=gemini-2.5-flash-lite
 CHAT_RATE_LIMIT_PER_USER=20
 ```
@@ -47,7 +47,7 @@ The frontend `.env.local` file has `NEXT_PUBLIC_API_URL=http://localhost:8000`, 
    | Variable Name | Value | Environment |
    |---------------|-------|-------------|
    | `NEXT_PUBLIC_API_URL` | `https://todo-app-production-be56.up.railway.app` | Production, Preview, Development |
-   | `BETTER_AUTH_SECRET` | `Pph1JttVAbghDQY0481WP-IcNdokMj0RDpF6l6MroEg` | Production, Preview, Development |
+   | `BETTER_AUTH_SECRET` | `<YOUR_SECRET_KEY_HERE>` | Production, Preview, Development |
    | `BETTER_AUTH_URL` | `https://todo-app-ashy-seven-25.vercel.app` | Production |
    | `NEXT_PUBLIC_AI_ENABLED` | `true` | Production, Preview, Development |
 
@@ -86,10 +86,10 @@ While CORS is working, let's verify all required environment variables are set:
 
    ```bash
    # Database
-   DATABASE_URL=postgresql://neondb_owner:npg_Rhn2tKWPLp6H@ep-frosty-dawn-ado879ad-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   DATABASE_URL=<YOUR_NEON_DATABASE_URL_HERE>
 
    # Authentication
-   BETTER_AUTH_SECRET=Pph1JttVAbghDQY0481WP-IcNdokMj0RDpF6l6MroEg
+   BETTER_AUTH_SECRET=<YOUR_SECRET_KEY_HERE>
    JWT_ALGORITHM=HS256
    JWT_EXPIRATION_DAYS=7
 
@@ -97,7 +97,7 @@ While CORS is working, let's verify all required environment variables are set:
    CORS_ORIGINS=https://todo-app-ashy-seven-25.vercel.app
 
    # AI Configuration (Phase III)
-   GEMINI_API_KEY=AIzaSyBShmnGp1VK7Jo7ojvgQbu5dysINUmAnwk
+   GEMINI_API_KEY=<YOUR_GEMINI_API_KEY_HERE>
    AI_MODEL=gemini-2.5-flash-lite
    CHAT_RATE_LIMIT_PER_USER=20
    ```
@@ -164,7 +164,7 @@ fetch('https://todo-app-production-be56.up.railway.app/health')
 3. Check database to confirm:
    ```bash
    # Connect to Neon database (use your connection string)
-   psql "postgresql://neondb_owner:npg_Rhn2tKWPLp6H@ep-frosty-dawn-ado879ad-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
+   psql "postgresql://neondb_owner:<YOUR_DB_PASSWORD>@ep-frosty-dawn-ado879ad-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
    # Query tasks
    SELECT id, title, user_id, created_via_ai FROM tasks ORDER BY created_at DESC LIMIT 5;
@@ -242,7 +242,7 @@ fetch('https://todo-app-production-be56.up.railway.app/health')
 3. Verify user has opted in to AI features in settings
 4. Test Gemini API key:
    ```bash
-   curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyBShmnGp1VK7Jo7ojvgQbu5dysINUmAnwk" \
+   curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=<YOUR_GEMINI_API_KEY_HERE>" \
      -H 'Content-Type: application/json' \
      -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
    ```

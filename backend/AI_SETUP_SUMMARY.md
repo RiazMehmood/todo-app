@@ -42,7 +42,7 @@ set_default_openai_client(openai_client, use_for_tracing=False)
 ```env
 # AI Chat Configuration (Phase III)
 # Using Google Gemini API (OpenAI-compatible endpoint)
-OPENAI_API_KEY=AIzaSyBwBxqWCwIsb0XGmWxZfe90qq_lZOdxQB8
+OPENAI_API_KEY=<YOUR_API_KEY_HERE>
 OPENAI_API_BASE=https://generativelanguage.googleapis.com/v1beta/openai/
 AI_MODEL=gemini-1.5-flash
 CHAT_RATE_LIMIT_PER_USER=20
