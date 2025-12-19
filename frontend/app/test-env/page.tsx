@@ -6,8 +6,19 @@
  */
 
 export default function TestEnvPage() {
-  // These will be undefined in browser, but we can test the API call
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'NOT SET';
+  // Detect API URL at runtime (same logic as api.ts)
+  const getApiUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      return process.env.NEXT_PUBLIC_API_URL;
+    }
+    if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+      return 'https://todo-app-production-be56.up.railway.app';
+    }
+    return 'http://localhost:8000';
+  };
+
+  const apiUrl = getApiUrl();
+  const envVar = process.env.NEXT_PUBLIC_API_URL || 'NOT SET (using runtime detection)';
   const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED || 'NOT SET';
 
   const testBackendConnection = async () => {
@@ -42,8 +53,13 @@ export default function TestEnvPage() {
           <div className="border-b pb-4">
             <h2 className="text-lg font-semibold mb-2">Current Values:</h2>
             <div className="bg-gray-50 p-4 rounded font-mono text-sm">
-              <p><strong>NEXT_PUBLIC_API_URL:</strong> {apiUrl}</p>
+              <p><strong>Environment Variable:</strong> {envVar}</p>
+              <p><strong>Actual API URL (runtime):</strong> {apiUrl}</p>
               <p><strong>NEXT_PUBLIC_AI_ENABLED:</strong> {aiEnabled}</p>
+              <p className="mt-2 text-xs text-gray-600">
+                {apiUrl.includes('railway.app') && '✅ Using Production Backend (Railway)'}
+                {apiUrl.includes('localhost') && '⚠️ Using Local Development Backend'}
+              </p>
             </div>
           </div>
 

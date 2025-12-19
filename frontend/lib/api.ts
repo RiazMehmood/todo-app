@@ -23,8 +23,33 @@ import {
   Message,
 } from './types';
 
-// API base URL from environment variable
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// API base URL from environment variable with runtime fallback
+function getApiUrl(): string {
+  // Try environment variable first (set at build time in Vercel)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // Runtime detection for production
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+
+    // If deployed on Vercel, use Railway backend
+    if (hostname.includes('vercel.app')) {
+      return 'https://todo-app-production-be56.up.railway.app';
+    }
+  }
+
+  // Default to localhost for local development
+  return 'http://localhost:8000';
+}
+
+const API_URL = getApiUrl();
+
+// Log the API URL being used (helps with debugging)
+if (typeof window !== 'undefined') {
+  console.log('🔗 API URL:', API_URL);
+}
 
 // Token storage key
 const TOKEN_KEY = 'todo_auth_token';
