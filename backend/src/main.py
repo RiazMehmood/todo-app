@@ -11,6 +11,7 @@ This module configures:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 
@@ -118,9 +119,10 @@ app.include_router(chat.router, prefix="/api", tags=["chat"])
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     """Handle 404 Not Found errors."""
-    return {
-        "detail": "Endpoint not found. Visit /docs for API documentation."
-    }
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Endpoint not found. Visit /docs for API documentation."}
+    )
 
 
 if __name__ == "__main__":
