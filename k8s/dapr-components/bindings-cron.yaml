@@ -1,0 +1,49 @@
+# Cron Binding Component - Scheduled Reminder Checks
+# Phase V - Periodic Task Execution
+#
+# This component triggers the backend service every 5 minutes to:
+# 1. Query database for tasks with upcoming due dates
+# 2. Check if reminder should be sent (due_date - remind_before_minutes)
+# 3. Publish reminder events to Kafka for Notification Service
+#
+# The backend service will implement an endpoint that responds to this binding.
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: reminder-cron
+  namespace: default
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    # Cron schedule: every 5 minutes
+    # Format: minute hour day month dayOfWeek
+    # */5 * * * * = every 5 minutes
+    - name: schedule
+      value: "*/5 * * * *"
+
+    # Direction: input binding (triggers the app)
+    - name: direction
+      value: "input"
+
+# Scopes - only backend service should receive cron triggers
+scopes:
+  - backend-service
+---
+# Alternative: More frequent checks (every minute) - Uncomment if needed
+# apiVersion: dapr.io/v1alpha1
+# kind: Component
+# metadata:
+#   name: reminder-cron-frequent
+#   namespace: default
+# spec:
+#   type: bindings.cron
+#   version: v1
+#   metadata:
+#     - name: schedule
+#       value: "* * * * *"  # Every minute
+#     - name: direction
+#       value: "input"
+# scopes:
+#   - backend-service

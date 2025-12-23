@@ -337,8 +337,10 @@ See `.specify/memory/constitution.md` for:
 - Architecture patterns
 
 ## Recent Changes
+- 004-kubernetes-deployment: Added Python 3.13+ (backend/services), Node.js 18+ (frontend)
 - 002-todo-web-app: Added Neon Serverless PostgreSQL (cloud-hosted, auto-scaling)
 
 - **Phase II Started**: Transitioning to full-stack web application
 
 ## Active Technologies
+- Python 3.13+ (backend/services), Node.js 18+ (frontend) (004-kubernetes-deployment)

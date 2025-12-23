@@ -1,0 +1,61 @@
+# Dapr Configuration - Tracing and Monitoring
+# Phase V - Observability
+#
+# This configuration enables:
+# - Distributed tracing with Zipkin/Jaeger
+# - Metrics collection
+# - HTTP/gRPC middleware
+# - Access control policies
+#
+# Dapr will automatically propagate trace context across service calls.
+
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: tracing
+  namespace: default
+spec:
+  # Tracing configuration
+  tracing:
+    # Sampling rate (1.0 = 100%, 0.1 = 10%)
+    samplingRate: "1.0"
+
+    # Zipkin exporter (can also use Jaeger, OTLP)
+    zipkin:
+      endpointAddress: "http://zipkin.default.svc.cluster.local:9411/api/v2/spans"
+
+  # Metrics configuration
+  metric:
+    enabled: true
+
+  # HTTP middleware pipeline
+  httpPipeline:
+    handlers:
+      - name: uppercase
+        type: middleware.http.uppercase
+
+  # Access control policies (optional)
+  accessControl:
+    defaultAction: allow
+    trustDomain: "public"
+    policies:
+      - appId: backend-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+
+      - appId: notification-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+
+      - appId: audit-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+
+  # mTLS configuration (optional - for production)
+  mtls:
+    enabled: false
+    # workloadCertTTL: "24h"
+    # allowedClockSkew: "15m"

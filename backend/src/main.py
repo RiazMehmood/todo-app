@@ -57,20 +57,29 @@ def on_startup():
     - Creates database tables if they don't exist
     - Logs startup information
     """
-    print("=" * 50)
-    print("🚀 Starting Todo API Server (Phase III)")
-    print("=" * 50)
-    print(f"📦 Version: 3.0.0-dev")
-    print(f"🤖 AI Chatbot: Enabled")
-    print(f"🌐 CORS Origins: {', '.join(CORS_ORIGINS)}")
-    print(f"📚 API Docs: http://localhost:8000/docs")
-    print("=" * 50)
+    try:
+        print("=" * 50)
+        print("🚀 Starting Todo API Server (Phase III)")
+        print("=" * 50)
+        print(f"📦 Version: 3.0.0-dev")
+        print(f"🤖 AI Chatbot: Enabled")
+        print(f"🌐 CORS Origins: {', '.join(CORS_ORIGINS)}")
+        print(f"📚 API Docs: http://localhost:8000/docs")
+        print("=" * 50)
 
-    # Create database tables (includes Phase III tables)
-    create_db_and_tables()
+        # Create database tables (includes Phase III tables)
+        print("Creating database tables...")
+        create_db_and_tables()
 
-    print("✅ Server ready! AI chatbot integration active.")
-    print("=" * 50)
+        print("✅ Server ready! AI chatbot integration active.")
+        print("=" * 50)
+    except Exception as e:
+        print("=" * 50)
+        print(f"❌ FATAL ERROR during startup: {type(e).__name__}: {e}")
+        print("=" * 50)
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 # Root endpoint

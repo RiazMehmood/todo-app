@@ -1,0 +1,117 @@
+# Ingress - Phase V
+# Expose frontend and backend services via HTTP/HTTPS
+#
+# This ingress configuration works with:
+# - NGINX Ingress Controller (Minikube, DOKS, GKE, AKS)
+# - Traefik
+# - HAProxy
+#
+# For local testing (Minikube):
+# minikube addons enable ingress
+# echo "127.0.0.1 todo.local" | sudo tee -a /etc/hosts
+# Access at: http://todo.local
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todo-ingress
+  namespace: default
+  annotations:
+    # NGINX Ingress annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Set to true in production with TLS
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    
+    # CORS configuration (if needed)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type"
+    
+    # Rate limiting (optional)
+    # nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  ingressClassName: nginx  # Use 'traefik' for Traefik
+  rules:
+  # Frontend routes
+  - host: todo.local  # Replace with your domain in production
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 3000
+
+  # Backend API routes
+  - host: todo.local
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8000
+
+  # Audit API routes (optional - expose if needed)
+  - host: todo.local
+    http:
+      paths:
+      - path: /audit
+        pathType: Prefix
+        backend:
+          service:
+            name: audit-service
+            port:
+              number: 8001
+
+  # TLS configuration (uncomment for HTTPS in production)
+  # tls:
+  # - hosts:
+  #   - todo.yourdomain.com
+  #   secretName: todo-tls-secret  # Create with cert-manager or manually
+
+---
+# Alternative: Separate ingresses for frontend and backend
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: frontend-ingress
+#   namespace: default
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#   - host: todo.yourdomain.com
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: frontend-service
+#             port:
+#               number: 3000
+
+---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: backend-ingress
+#   namespace: default
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#   - host: api.todo.yourdomain.com
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: backend-service
+#             port:
+#               number: 8000

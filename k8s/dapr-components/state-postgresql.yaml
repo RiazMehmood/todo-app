@@ -1,0 +1,71 @@
+# PostgreSQL State Store Component - Neon Serverless Database
+# Phase V - Cloud-Native State Management
+#
+# This component provides distributed state storage using PostgreSQL (Neon).
+# Used for:
+# - Caching frequently accessed data
+# - Storing session state
+# - Distributed locks
+# - Actor state (if using Dapr actors)
+#
+# Prerequisites:
+# 1. Neon PostgreSQL database created
+# 2. Database initialized with state table
+# 3. Kubernetes secret 'db-secrets' with connection string
+#
+# Create secret:
+# kubectl create secret generic db-secrets \
+#   --from-literal=connectionString='postgresql://user:password@host/dbname?sslmode=require'
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: default
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    # PostgreSQL connection string from Kubernetes secret
+    - name: connectionString
+      secretKeyRef:
+        name: db-secrets
+        key: connectionString
+
+    # Table name for state storage
+    - name: tableName
+      value: "dapr_state"
+
+    # Metadata table name
+    - name: metadataTableName
+      value: "dapr_metadata"
+
+    # Timeout for database operations
+    - name: timeout
+      value: "20s"
+
+    # Enable actorStateStore (if using Dapr actors)
+    - name: actorStateStore
+      value: "true"
+
+    # Cleanup interval for expired state
+    - name: cleanupInterval
+      value: "1h"
+
+    # Maximum number of connections
+    - name: maxConns
+      value: "10"
+
+    # Connection max lifetime
+    - name: connectionMaxLifetime
+      value: "0"
+
+    # Query execution mode
+    - name: queryExecMode
+      value: "cache_statement"
+
+# Scopes (optional) - restrict to specific apps
+scopes:
+  - backend-service
+  - notification-service
+  - audit-service

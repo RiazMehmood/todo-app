@@ -4,9 +4,9 @@
 A todo application that evolves from a simple console app to a fully-featured, cloud-native AI chatbot deployed on Kubernetes. This project demonstrates the **Evolution of Todo** - mastering Spec-Driven Development and Cloud-Native AI technologies.
 
 ## Current Phase
-**Phase III: AI Chatbot Integration**
+**Phase V: Advanced Cloud Deployment**
 
-Add natural language interface using OpenAI ChatKit, Agents SDK, and Model Context Protocol (MCP) for conversational task management.
+Implement advanced features, event-driven architecture with Kafka, Dapr integration, and deploy to Kubernetes (local and cloud) with full CI/CD pipeline.
 
 ## Tech Stack Evolution
 
@@ -32,9 +32,7 @@ Add natural language interface using OpenAI ChatKit, Agents SDK, and Model Conte
 - **Spec-Driven**: Claude Code + Spec-Kit Plus
 
 ### Future Phases
-- **Phase III**: AI chatbot with OpenAI ChatKit, Agents SDK, MCP
-- **Phase IV**: Local Kubernetes deployment (Minikube, Helm)
-- **Phase V**: Cloud deployment (DOKS/GKE/AKS, Kafka, Dapr)
+- **Phase VI**: Additional enhancements and optimizations
 
 ## Core Features
 
@@ -88,9 +86,9 @@ Add natural language interface using OpenAI ChatKit, Agents SDK, and Model Conte
 - **Phase II**: ✅ Completed & Deployed (Dec 16, 2025)
   - Frontend: https://todo-app-ashy-seven-25.vercel.app/login
   - Backend: https://todo-app-production-be56.up.railway.app/
-- **Phase III**: 🚧 In Progress (Due: Dec 21, 2025)
-- **Phase IV**: 📋 Planned (Due: Jan 4, 2026)
-- **Phase V**: 📋 Planned (Due: Jan 18, 2026)
+- **Phase III**: ✅ Completed (Dec 21, 2025)
+- **Phase IV**: ✅ Completed (Jan 4, 2026)
+- **Phase V**: 🚧 In Progress (Due: Jan 18, 2026)
 
 ## Development Workflow
 

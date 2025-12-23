@@ -1,0 +1,58 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "todo-app.fullname" . }}-postgres
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "todo-app.postgres.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "todo-app.fullname" . }}-postgres-service
+  replicas: {{ .Values.postgres.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.postgres.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: postgres
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-app.fullname" . }}-postgres-config
+              key: database_name
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-postgres-secrets
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-postgres-secrets
+              key: password
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          {{- toYaml .Values.postgres.resources | nindent 10 }}
+  {{- if .Values.postgres.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "{{ .Values.postgres.persistence.accessMode }}" ]
+      resources:
+        requests:
+          storage: {{ .Values.postgres.persistence.size }}
+  {{- end }}
+{{- end }}
+

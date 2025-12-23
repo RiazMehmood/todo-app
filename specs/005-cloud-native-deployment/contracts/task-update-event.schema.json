@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://todo-app.example.com/schemas/task-update-event.json",
+  "title": "Task Update Event",
+  "description": "Event schema for real-time task sync (task-updates topic)",
+  "type": "object",
+  "required": ["event_type", "task_id", "user_id", "changes", "timestamp"],
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "const": "task_updated",
+      "description": "Event type for real-time updates"
+    },
+    "task_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Updated task ID"
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "User who made the update"
+    },
+    "changes": {
+      "type": "object",
+      "description": "Only fields that changed (key-value pairs)",
+      "additionalProperties": true,
+      "minProperties": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when update occurred"
+    }
+  }
+}

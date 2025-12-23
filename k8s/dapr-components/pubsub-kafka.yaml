@@ -1,0 +1,92 @@
+# Kafka Pub/Sub Component - Redpanda Cloud Integration
+# Phase V - Cloud-Native Event-Driven Architecture
+#
+# This component connects Dapr to Kafka (Redpanda Cloud) for event publishing
+# and consumption across all microservices.
+#
+# Prerequisites:
+# 1. Redpanda Cloud cluster created (free serverless tier)
+# 2. Topics created: task-events, reminders, task-updates, recurring-tasks
+# 3. Kubernetes secret 'kafka-secrets' with username and password
+#
+# Create secret:
+# kubectl create secret generic kafka-secrets \
+#   --from-literal=username='YOUR_REDPANDA_USERNAME' \
+#   --from-literal=password='YOUR_REDPANDA_PASSWORD'
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Redpanda Cloud bootstrap server
+    # Format: <cluster-name>.<region>.cloud.redpanda.com:9092
+    # Example: todo-cluster-abc123.us-east-1.cloud.redpanda.com:9092
+    - name: brokers
+      value: "d54l263rcoacstirud90.any.us-east-1.mpx.prd.cloud.redpanda.com:9092"
+
+    # Consumer group for this application
+    - name: consumerGroup
+      value: "todo-service-group"
+
+    # Client ID
+    - name: clientID
+      value: "todo-app"
+
+    # Authentication type
+    - name: authType
+      value: "password"
+
+    # SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512 for Redpanda)
+    - name: saslMechanism
+      value: "SCRAM-SHA-256"
+
+    # SASL username from Kubernetes secret
+    - name: saslUsername
+      secretKeyRef:
+        name: kafka-secrets
+        key: username
+
+    # SASL password from Kubernetes secret
+    - name: saslPassword
+      secretKeyRef:
+        name: kafka-secrets
+        key: password
+
+    # Enable TLS (required for Redpanda Cloud)
+    - name: enableTLS
+      value: "true"
+
+    # Skip TLS verification (set to false in production)
+    - name: skipVerify
+      value: "false"
+
+    # Consumer session timeout
+    - name: sessionTimeout
+      value: "30s"
+
+    # Consumer heartbeat interval
+    - name: heartbeatInterval
+      value: "10s"
+
+    # Initial offset (newest or oldest)
+    - name: initialOffset
+      value: "newest"
+
+    # Number of retries for failed messages
+    - name: maxRetries
+      value: "3"
+
+    # Backoff duration between retries
+    - name: backOffDuration
+      value: "5s"
+
+# Scopes (optional) - restrict to specific apps
+scopes:
+  - backend-service
+  - notification-service
+  - audit-service

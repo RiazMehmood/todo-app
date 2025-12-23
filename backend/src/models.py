@@ -9,6 +9,14 @@ from sqlmodel import SQLModel, Field, Column
 from sqlalchemy import String
 from datetime import datetime
 from typing import Optional
+from enum import Enum
+
+
+class Priority(str, Enum):
+    """Task priority levels (Phase V - Intermediate features)"""
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
 class User(SQLModel, table=True):
@@ -37,9 +45,11 @@ class Task(SQLModel, table=True):
     Supports title, description, completion status, and timestamps.
 
     Phase III Enhancement: Added AI metadata fields for chatbot integration.
+    Phase V Enhancement: Added advanced features (recurring tasks, due dates, priorities, tags).
     """
     __tablename__ = "tasks"
 
+    # Basic fields
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(foreign_key="users.id", index=True, max_length=255)
     title: str = Field(min_length=1, max_length=200)
@@ -52,6 +62,23 @@ class Task(SQLModel, table=True):
     created_via_ai: bool = Field(default=False, index=True)
     ai_suggested_priority: Optional[int] = Field(default=None, ge=1, le=5)
     original_nl_input: Optional[str] = Field(default=None)
+
+    # Phase V - Advanced Level: Recurring Tasks
+    is_recurring: bool = Field(default=False, index=True)
+    recurrence_pattern: Optional[str] = Field(default=None, max_length=20)  # "daily", "weekly", "monthly"
+    recurrence_interval: Optional[int] = Field(default=1, ge=1)  # Every N days/weeks/months
+    recurrence_days: Optional[str] = Field(default=None, max_length=200)  # JSON array for weekly: ["monday", "friday"]
+    recurrence_end_date: Optional[datetime] = Field(default=None)
+    parent_task_id: Optional[int] = Field(default=None, foreign_key="tasks.id")  # Link to original recurring task
+
+    # Phase V - Advanced Level: Due Dates & Reminders
+    due_date: Optional[datetime] = Field(default=None, index=True)
+    remind_before_minutes: Optional[int] = Field(default=60, ge=0)  # Default: 1 hour before
+    reminder_sent: bool = Field(default=False)
+
+    # Phase V - Intermediate Level: Priorities & Tags
+    priority: str = Field(default=Priority.MEDIUM.value, max_length=10, index=True)  # "high", "medium", "low"
+    tags: Optional[str] = Field(default=None, max_length=500)  # JSON array: ["work", "urgent", "client-x"]
 
 
 class UserPreferences(SQLModel, table=True):

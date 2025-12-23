@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: todo-app
+  labels:
+    app: todo-app
+    component: postgres
+data:
+  database_name: "todo_db"
+

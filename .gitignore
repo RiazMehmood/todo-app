@@ -88,3 +88,14 @@ conversations.db
 *.tmp
 *.bak
 *.swp
+
+# Kubernetes / Helm
+*.secret.yaml
+secrets/
+.kube/
+kubeconfig*
+*.key
+*.crt
+*.pem
+helm-chart/charts/
+helm-chart/*.tgz

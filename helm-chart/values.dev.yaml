@@ -1,0 +1,22 @@
+# Development environment overrides
+# Usage: helm install todo-app ./helm-chart -f values.dev.yaml
+
+frontend:
+  image:
+    tag: dev
+  replicaCount: 1
+
+backend:
+  image:
+    tag: dev
+  replicaCount: 1
+  config:
+    cors_origins: "http://todo.local,http://localhost:3000,http://localhost:8080"
+
+postgres:
+  enabled: false  # Use external Neon database in dev
+
+ingress:
+  enabled: true
+  host: "todo.local"
+

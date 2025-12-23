@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://todo-app.example.com/schemas/recurring-task-event.json",
+  "title": "Recurring Task Event",
+  "description": "Event schema for recurring task completion processing (recurring-tasks topic)",
+  "type": "object",
+  "required": [
+    "event_type",
+    "task_id",
+    "parent_task_id",
+    "user_id",
+    "recurrence_pattern",
+    "recurrence_interval",
+    "next_occurrence",
+    "task_data",
+    "timestamp"
+  ],
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "const": "recurring_task_completed",
+      "description": "Event type for recurring task completion"
+    },
+    "task_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Completed task ID"
+    },
+    "parent_task_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Parent recurring task ID"
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Task owner"
+    },
+    "recurrence_pattern": {
+      "type": "string",
+      "enum": ["daily", "weekly", "monthly"],
+      "description": "Recurrence frequency"
+    },
+    "recurrence_interval": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "description": "Every N days/weeks/months"
+    },
+    "recurrence_days": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "string",
+        "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+      },
+      "description": "Days of week for weekly pattern (null for daily/monthly)"
+    },
+    "next_occurrence": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp for next task occurrence"
+    },
+    "recurrence_end_date": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when recurrence ends (null = infinite)"
+    },
+    "task_data": {
+      "type": "object",
+      "description": "Task template for new occurrence",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": ["string", "null"], "maxLength": 1000 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "tags": {
+          "type": ["array", "null"],
+          "items": { "type": "string", "maxLength": 30 },
+          "maxItems": 10
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when event was published"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# Audit Service Dependencies - Phase V
+
+# Dapr SDK for Python
+dapr==1.12.0
+dapr-ext-grpc==1.12.0
+
+# CloudEvents
+cloudevents==1.10.1
+
+# FastAPI for audit query API
+fastapi==0.109.0
+uvicorn==0.27.0
+
+# Database ORM
+sqlmodel==0.0.14
+psycopg2-binary==2.9.9
+
+# Logging
+python-json-logger==2.0.7

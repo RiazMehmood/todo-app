@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: todo-app
+  labels:
+    app: todo-app
+    component: backend
+data:
+  cors_origins: "http://todo.local,http://localhost:3000"
+  jwt_algorithm: "HS256"
+  jwt_expiration_days: "7"
+

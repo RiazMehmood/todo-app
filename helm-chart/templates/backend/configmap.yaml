@@ -1,0 +1,14 @@
+{{- if .Values.backend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-app.fullname" . }}-backend-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "todo-app.backend.labels" . | nindent 4 }}
+data:
+  cors_origins: {{ .Values.backend.config.cors_origins | quote }}
+  jwt_algorithm: {{ .Values.backend.config.jwt_algorithm | quote }}
+  jwt_expiration_days: {{ .Values.backend.config.jwt_expiration_days | quote }}
+{{- end }}
+

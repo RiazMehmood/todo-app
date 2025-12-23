@@ -1,0 +1,80 @@
+{{- if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-backend
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "todo-app.backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-secrets
+              key: database_url
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-config
+              key: cors_origins
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-secrets
+              key: better_auth_secret
+        - name: JWT_ALGORITHM
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-config
+              key: jwt_algorithm
+        - name: JWT_EXPIRATION_DAYS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-config
+              key: jwt_expiration_days
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-secrets
+              key: openai_api_key
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-backend-secrets
+              key: gemini_api_key
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: {{ .Values.backend.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.probes.readiness.timeoutSeconds }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: {{ .Values.backend.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.backend.probes.liveness.timeoutSeconds }}
+{{- end }}
+

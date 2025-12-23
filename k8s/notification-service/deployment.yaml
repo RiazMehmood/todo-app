@@ -1,0 +1,72 @@
+# Notification Service Deployment - Phase V
+# Dapr consumer for reminder events
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: default
+  labels:
+    app: notification
+    component: microservice
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+        component: microservice
+        version: v1
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "notification-service"
+        dapr.io/app-port: "50051"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/config: "no-mtls-config"
+        dapr.io/log-level: "info"
+    spec:
+      containers:
+      - name: notification
+        image: notification-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50051
+          name: grpc
+        env:
+        - name: DAPR_APP_PORT
+          value: "50051"
+        - name: EMAIL_ENABLED
+          value: "false"  # Set to true when email service is configured
+        - name: DAPR_PUBSUB_NAME
+          value: "kafka-pubsub"
+        - name: SENDGRID_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: email-secrets
+              key: sendgridApiKey
+              optional: true
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: notification
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051

@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://todo-app.example.com/schemas/reminder-event.json",
+  "title": "Reminder Event",
+  "description": "Event schema for task reminder notifications (reminders topic)",
+  "type": "object",
+  "required": [
+    "event_type",
+    "task_id",
+    "user_id",
+    "title",
+    "due_date",
+    "remind_before_minutes",
+    "timestamp"
+  ],
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "const": "reminder_due",
+      "description": "Event type for reminders"
+    },
+    "task_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Task identifier"
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "User to notify"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Task title"
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 1000,
+      "description": "Task description"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when task is due"
+    },
+    "remind_before_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10080,
+      "description": "Minutes before due date to send reminder"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Task priority"
+    },
+    "tags": {
+      "type": ["array", "null"],
+      "items": { "type": "string", "maxLength": 30 },
+      "maxItems": 10,
+      "description": "Task tags"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when reminder event was published"
+    }
+  }
+}

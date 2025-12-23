@@ -6,12 +6,16 @@
  * - Authentication headers
  * - Error handling
  * - Type-safe API calls
+ *
+ * Phase V Enhancement: Added support for advanced filtering, recurring tasks, and new task fields.
  */
 
 import {
   Task,
   CreateTaskInput,
   UpdateTaskInput,
+  TaskFilterParams,
+  ToggleTaskResponse,
   SignupInput,
   LoginInput,
   AuthResponse,
@@ -33,6 +37,11 @@ function getApiUrl(): string {
   // Runtime detection for production
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+
+    // If deployed on Kubernetes (todo.local), use empty string (endpoints already have /api prefix)
+    if (hostname === 'todo.local' || hostname.includes('todo.local')) {
+      return '';
+    }
 
     // If deployed on Vercel, use Railway backend
     if (hostname.includes('vercel.app')) {
@@ -176,8 +185,32 @@ export const api = {
     }),
 
   // Tasks
-  getTasks: (userId: string, status?: string): Promise<Task[]> => {
-    const query = status && status !== 'all' ? `?status=${status}` : '';
+  /**
+   * Get tasks with advanced filtering, search, and sorting (Phase V).
+   *
+   * @param userId - User ID
+   * @param filters - Optional filters (status, priority, tags, search, due dates, sorting, pagination)
+   * @returns Promise with array of tasks
+   */
+  getTasks: (userId: string, filters?: TaskFilterParams): Promise<Task[]> => {
+    // Build query string from filters
+    const params = new URLSearchParams();
+
+    if (filters) {
+      if (filters.status) params.append('status', filters.status);
+      if (filters.priority) params.append('priority', filters.priority);
+      if (filters.tags) params.append('tags', filters.tags);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.due_date_before) params.append('due_date_before', filters.due_date_before);
+      if (filters.due_date_after) params.append('due_date_after', filters.due_date_after);
+      if (filters.is_recurring !== undefined) params.append('is_recurring', String(filters.is_recurring));
+      if (filters.sort_by) params.append('sort_by', filters.sort_by);
+      if (filters.sort_order) params.append('sort_order', filters.sort_order);
+      if (filters.limit) params.append('limit', String(filters.limit));
+      if (filters.offset) params.append('offset', String(filters.offset));
+    }
+
+    const query = params.toString() ? `?${params.toString()}` : '';
     return apiCall(`/api/${userId}/tasks${query}`);
   },
 
@@ -205,7 +238,17 @@ export const api = {
       method: 'DELETE',
     }),
 
-  toggleTask: (userId: string, taskId: number): Promise<Task> =>
+  /**
+   * Toggle task completion status (Phase V).
+   *
+   * For recurring tasks, this will mark the current instance as complete
+   * and create a new task instance for the next occurrence.
+   *
+   * @param userId - User ID
+   * @param taskId - Task ID
+   * @returns Promise with toggle response (includes next_task for recurring tasks)
+   */
+  toggleTask: (userId: string, taskId: number): Promise<ToggleTaskResponse> =>
     apiCall(`/api/${userId}/tasks/${taskId}/complete`, {
       method: 'PATCH',
     }),

@@ -1,0 +1,89 @@
+# Backend API Deployment - Phase V
+# FastAPI application with Dapr sidecar for event publishing
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-service
+  namespace: default
+  labels:
+    app: backend
+    component: api
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        component: api
+        version: v1
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "backend-service"
+        dapr.io/app-port: "8000"
+        dapr.io/config: "no-mtls-config"
+    spec:
+      containers:
+      - name: backend
+        image: todo-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: databaseUrl
+        - name: KAFKA_ENABLED
+          value: "true"
+        - name: DAPR_HTTP_PORT
+          value: "3500"
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: betterAuthSecret
+        - name: OPENAI_API_KEY
+          value: "sk-proj—vwQTMe_WYrkzmsL8YBjca3Ud_BrJWDK2b6_8EsD2SsRgX2cC4h_GXVYMbC2AClZMNJm4JoPN8T3BlbkFJHct_l-Rs3QoPzPF2x0mppLKvcFTng7mMdHhjLxEUZAXgKoLBr5DnXktipuSQ5p--vPSIcw9k4A"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+  - name: dapr-http
+    port: 3500
+    targetPort: 3500

@@ -1,0 +1,121 @@
+# Default values for todo-app
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  namespace: todo-app
+  imageRegistry: ""
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  config:
+    api_url: "http://backend-service:8000"
+  probes:
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 5
+
+# Backend configuration
+backend:
+  enabled: true
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  config:
+    cors_origins: "http://todo.local,http://localhost:3000"
+    jwt_algorithm: "HS256"
+    jwt_expiration_days: "7"
+  secrets:
+    # These should be overridden in values files or via --set
+    database_url: ""
+    better_auth_secret: ""
+    openai_api_key: ""
+    gemini_api_key: ""
+  probes:
+    readiness:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 5
+
+# PostgreSQL configuration (optional - for in-cluster database)
+postgres:
+  enabled: false  # Set to true if using in-cluster PostgreSQL instead of external Neon
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 5432
+  config:
+    database_name: "todo_db"
+  secrets:
+    username: "postgres"
+    password: ""  # Must be set via values or --set
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "todo.local"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  paths:
+    - path: /
+      pathType: Prefix
+      service: frontend-service
+      port: 80
+    - path: /api
+      pathType: Prefix
+      service: backend-service
+      port: 8000
+
