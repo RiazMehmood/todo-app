@@ -31,8 +31,8 @@ spec:
     spec:
       containers:
       - name: notification
-        image: notification-service:latest
-        imagePullPolicy: IfNotPresent
+        image: riazmehmood/todo-notification:v1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 50051
           name: grpc

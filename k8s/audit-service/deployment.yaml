@@ -31,8 +31,8 @@ spec:
     spec:
       containers:
       - name: audit
-        image: audit-service:latest
-        imagePullPolicy: IfNotPresent
+        image: riazmehmood/todo-audit:v1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 8001
           name: http
@@ -43,7 +43,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: db-secrets
-              key: databaseUrl
+              key: connection-string
         - name: DAPR_APP_PORT
           value: "50053"
         - name: DAPR_PUBSUB_NAME

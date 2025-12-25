@@ -1,0 +1,486 @@
+openapi: 3.0.3
+info:
+  title: Todo App - Task Templates API
+  description: API endpoints for creating, managing, and instantiating task templates
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://todo-app-production-be56.up.railway.app
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/{user_id}/templates:
+    get:
+      summary: List all templates for user
+      description: Retrieve all task templates owned by the authenticated user
+      operationId: listTemplates
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskTemplate'
+              example:
+                templates:
+                  - id: "880e8400-e29b-41d4-a716-446655440003"
+                    user_id: "660e8400-e29b-41d4-a716-446655440001"
+                    name: "Weekly Sprint"
+                    description: "Standard sprint tasks for weekly cycle"
+                    tasks_definition:
+                      - title: "{{PROJECT_NAME}} - Sprint Planning"
+                        description: "Plan sprint goals and tasks"
+                        priority: "high"
+                        tags: ["sprint", "{{PROJECT_NAME}}"]
+                        due_date_offset: 0
+                      - title: "{{PROJECT_NAME}} - Development"
+                        priority: "medium"
+                        due_date_offset: 1
+                      - title: "{{PROJECT_NAME}} - Code Review"
+                        priority: "medium"
+                        due_date_offset: 4
+                      - title: "{{PROJECT_NAME}} - Testing"
+                        priority: "high"
+                        due_date_offset: 5
+                      - title: "{{PROJECT_NAME}} - Deployment"
+                        priority: "high"
+                        due_date_offset: 6
+                    placeholders: ["PROJECT_NAME"]
+                    created_at: "2025-12-10T10:00:00Z"
+                    updated_at: "2025-12-10T10:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new task template
+      description: Create a reusable task template with placeholders
+      operationId: createTemplate
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - tasks_definition
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Template name
+                  example: "Client Onboarding"
+                description:
+                  type: string
+                  maxLength: 500
+                  description: Optional template description
+                  example: "Tasks for onboarding new clients"
+                tasks_definition:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  description: Array of task definitions
+                  items:
+                    type: object
+                    required:
+                      - title
+                    properties:
+                      title:
+                        type: string
+                        description: Task title (may contain placeholders)
+                        example: "{{CLIENT_NAME}} - Initial Meeting"
+                      description:
+                        type: string
+                        description: Task description (may contain placeholders)
+                        example: "Schedule kickoff call with {{CLIENT_NAME}}"
+                      priority:
+                        type: string
+                        enum: [low, medium, high]
+                        default: medium
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        description: Tags (may contain placeholders)
+                        example: ["onboarding", "{{CLIENT_NAME}}"]
+                      due_date_offset:
+                        type: integer
+                        description: Days offset from start_date (0 = same day as start)
+                        minimum: 0
+                        maximum: 365
+                        example: 0
+                      recurring_pattern:
+                        type: string
+                        nullable: true
+                        description: Optional recurring pattern
+                placeholders:
+                  type: array
+                  maxItems: 10
+                  items:
+                    type: string
+                  description: List of placeholder names (auto-detected if not provided)
+                  example: ["CLIENT_NAME"]
+      responses:
+        '201':
+          description: Template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskTemplate'
+        '400':
+          description: Invalid request (too many placeholders, invalid task definition)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: "Template exceeds maximum of 10 placeholders"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Template with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/templates/{template_id}:
+    put:
+      summary: Update an existing template
+      description: Modify template name, description, or task definitions
+      operationId: updateTemplate
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                description:
+                  type: string
+                  maxLength: 500
+                tasks_definition:
+                  type: array
+                  maxItems: 50
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskTemplate'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a template
+      description: Remove a task template by ID
+      operationId: deleteTemplate
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Template deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/templates/{template_id}/instantiate:
+    post:
+      summary: Instantiate a template to create tasks
+      description: |
+        Create multiple tasks from a template by providing placeholder values
+        and a start date. All tasks will be created in a single transaction.
+      operationId: instantiateTemplate
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - start_date
+                - placeholder_values
+              properties:
+                start_date:
+                  type: string
+                  format: date
+                  description: Base date for calculating due dates (offset 0 = this date)
+                  example: "2025-12-24"
+                placeholder_values:
+                  type: object
+                  description: Map of placeholder names to replacement values
+                  additionalProperties:
+                    type: string
+                  example:
+                    CLIENT_NAME: "Acme Corp"
+                    SPRINT_NUMBER: "12"
+            example:
+              start_date: "2025-12-24"
+              placeholder_values:
+                CLIENT_NAME: "Acme Corp"
+      responses:
+        '201':
+          description: Tasks created successfully from template
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created_tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  count:
+                    type: integer
+                    description: Number of tasks created
+              example:
+                created_tasks:
+                  - id: "990e8400-e29b-41d4-a716-446655440004"
+                    user_id: "660e8400-e29b-41d4-a716-446655440001"
+                    title: "Acme Corp - Initial Meeting"
+                    description: "Schedule kickoff call with Acme Corp"
+                    status: "pending"
+                    priority: "high"
+                    tags: ["onboarding", "Acme Corp"]
+                    due_date: "2025-12-24T00:00:00Z"
+                    created_at: "2025-12-23T12:00:00Z"
+                  - id: "aa0e8400-e29b-41d4-a716-446655440005"
+                    title: "Acme Corp - Setup Account"
+                    status: "pending"
+                    priority: "medium"
+                    due_date: "2025-12-25T00:00:00Z"
+                count: 2
+        '400':
+          description: Invalid request (missing placeholder values, invalid date)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_placeholder:
+                  summary: Missing required placeholder
+                  value:
+                    detail: "Missing required placeholder values: CLIENT_NAME"
+                invalid_date:
+                  summary: Invalid start date
+                  value:
+                    detail: "Invalid date format for start_date. Expected YYYY-MM-DD"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error during task creation (transaction rolled back)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TaskTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        tasks_definition:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              priority:
+                type: string
+                enum: [low, medium, high]
+              tags:
+                type: array
+                items:
+                  type: string
+              due_date_offset:
+                type: integer
+              recurring_pattern:
+                type: string
+                nullable: true
+        placeholders:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        recurring_pattern:
+          type: string
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string

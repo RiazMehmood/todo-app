@@ -1,0 +1,153 @@
+name: Deploy to DigitalOcean Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+      - 005-cloud-native-deployment
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: riazmehmood
+  BACKEND_IMAGE: todo-backend
+  FRONTEND_IMAGE: todo-frontend
+  NOTIFICATION_IMAGE: todo-notification
+  AUDIT_IMAGE: todo-audit
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Generate image tag
+        id: tag
+        run: echo "tag=$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push notification service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/notification-service
+          file: ./services/notification-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.NOTIFICATION_IMAGE }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.NOTIFICATION_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push audit service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/audit-service
+          file: ./services/audit-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.AUDIT_IMAGE }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.AUDIT_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save do-nyc1-todo-phase-v
+
+      - name: Update Kubernetes secrets
+        run: |
+          kubectl create secret generic db-secrets \
+            --from-literal=connection-string='${{ secrets.NEON_DATABASE_URL }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic kafka-secrets \
+            --from-literal=username='${{ secrets.REDPANDA_USERNAME }}' \
+            --from-literal=password='${{ secrets.REDPANDA_PASSWORD }}' \
+            --from-literal=bootstrap-servers='${{ secrets.REDPANDA_BOOTSTRAP_SERVERS }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic api-secrets \
+            --from-literal=better-auth-secret='${{ secrets.BETTER_AUTH_SECRET }}' \
+            --from-literal=openai-api-key='${{ secrets.OPENAI_API_KEY }}' \
+            --from-literal=gemini-api-key='${{ secrets.GEMINI_API_KEY }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update deployment images
+        run: |
+          kubectl set image deployment/backend-service \
+            backend=${{ env.DOCKER_REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.tag.outputs.tag }} \
+            --record
+
+          kubectl set image deployment/notification-service \
+            notification=${{ env.DOCKER_REGISTRY }}/${{ env.NOTIFICATION_IMAGE }}:${{ steps.tag.outputs.tag }} \
+            --record
+
+          kubectl set image deployment/audit-service \
+            audit=${{ env.DOCKER_REGISTRY }}/${{ env.AUDIT_IMAGE }}:${{ steps.tag.outputs.tag }} \
+            --record
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/backend-service --timeout=5m
+          kubectl rollout status deployment/notification-service --timeout=5m
+          kubectl rollout status deployment/audit-service --timeout=5m
+
+      - name: Run health check
+        run: |
+          BACKEND_IP=$(kubectl get svc backend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [ -n "$BACKEND_IP" ]; then
+            echo "Backend IP: $BACKEND_IP"
+            curl -f http://$BACKEND_IP:8000/health || exit 1
+          else
+            echo "Backend service not yet exposed"
+          fi
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag**: \`${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pod Status" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -o wide >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services" >> $GITHUB_STEP_SUMMARY
+          kubectl get svc >> $GITHUB_STEP_SUMMARY

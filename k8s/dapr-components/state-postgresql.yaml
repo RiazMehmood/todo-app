@@ -30,7 +30,7 @@ spec:
     - name: connectionString
       secretKeyRef:
         name: db-secrets
-        key: connectionString
+        key: connection-string
 
     # Table name for state storage
     - name: tableName

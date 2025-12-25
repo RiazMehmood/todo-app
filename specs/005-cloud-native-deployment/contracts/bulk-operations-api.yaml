@@ -1,0 +1,283 @@
+openapi: 3.0.3
+info:
+  title: Todo App - Bulk Operations API
+  description: API endpoints for performing bulk updates and deletes on multiple tasks
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/{user_id}/tasks/bulk-update:
+    post:
+      summary: Update multiple tasks at once
+      description: |
+        Apply the same updates to multiple tasks in a single operation.
+        All updates are performed in a transaction (all succeed or all fail).
+        Maximum 500 tasks per operation.
+      operationId: bulkUpdateTasks
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task_ids
+                - updates
+              properties:
+                task_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: string
+                    format: uuid
+                  description: Array of task IDs to update
+                  example:
+                    - "aa0e8400-e29b-41d4-a716-446655440001"
+                    - "bb0e8400-e29b-41d4-a716-446655440002"
+                    - "cc0e8400-e29b-41d4-a716-446655440003"
+                updates:
+                  type: object
+                  description: Fields to update (only specified fields are changed)
+                  properties:
+                    status:
+                      type: string
+                      enum: [pending, in_progress, completed]
+                    priority:
+                      type: string
+                      enum: [low, medium, high]
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                      description: Replaces existing tags (not appends)
+                    due_date:
+                      type: string
+                      format: date-time
+                      nullable: true
+                  example:
+                    priority: "high"
+                    tags: ["urgent"]
+      responses:
+        '200':
+          description: Bulk update completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success_count:
+                    type: integer
+                    description: Number of tasks successfully updated
+                  failure_count:
+                    type: integer
+                    description: Number of tasks that failed to update
+                  updated_tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                    description: Array of successfully updated tasks
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        task_id:
+                          type: string
+                          format: uuid
+                        reason:
+                          type: string
+                    description: Details of failed updates (if any)
+              examples:
+                full_success:
+                  summary: All tasks updated successfully
+                  value:
+                    success_count: 10
+                    failure_count: 0
+                    updated_tasks: []
+                    errors: []
+                partial_success:
+                  summary: Some tasks failed to update
+                  value:
+                    success_count: 8
+                    failure_count: 2
+                    updated_tasks: []
+                    errors:
+                      - task_id: "dd0e8400-e29b-41d4-a716-446655440004"
+                        reason: "Task not found"
+                      - task_id: "ee0e8400-e29b-41d4-a716-446655440005"
+                        reason: "Task does not belong to user"
+        '400':
+          description: Invalid request (empty task_ids, no updates specified, exceeds 500 limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                empty_updates:
+                  summary: No updates specified
+                  value:
+                    detail: "No update fields specified"
+                too_many_tasks:
+                  summary: Exceeds bulk operation limit
+                  value:
+                    detail: "Bulk operation limited to 500 tasks, received 750"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden (attempting to update tasks not owned by user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/tasks/bulk-delete:
+    post:
+      summary: Delete multiple tasks at once
+      description: |
+        Delete multiple tasks in a single operation.
+        All deletions are performed in a transaction (all succeed or all fail).
+        Maximum 500 tasks per operation.
+      operationId: bulkDeleteTasks
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task_ids
+              properties:
+                task_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: string
+                    format: uuid
+                  description: Array of task IDs to delete
+                  example:
+                    - "ff0e8400-e29b-41d4-a716-446655440006"
+                    - "110e8400-e29b-41d4-a716-446655440007"
+      responses:
+        '200':
+          description: Bulk delete completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted_count:
+                    type: integer
+                    description: Number of tasks successfully deleted
+                  failed_ids:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        task_id:
+                          type: string
+                          format: uuid
+                        reason:
+                          type: string
+                    description: IDs that failed to delete with reasons
+              examples:
+                full_success:
+                  summary: All tasks deleted
+                  value:
+                    deleted_count: 20
+                    failed_ids: []
+                partial_success:
+                  summary: Some tasks not found
+                  value:
+                    deleted_count: 18
+                    failed_ids:
+                      - task_id: "220e8400-e29b-41d4-a716-446655440008"
+                        reason: "Task not found"
+                      - task_id: "330e8400-e29b-41d4-a716-446655440009"
+                        reason: "Task does not belong to user"
+        '400':
+          description: Invalid request (empty task_ids, exceeds 500 limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string

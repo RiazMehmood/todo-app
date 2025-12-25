@@ -15,6 +15,9 @@ RUN pip install --no-cache-dir uv
 # Copy dependency files
 COPY pyproject.toml ./
 
+# Set UV timeout for slow networks
+ENV UV_HTTP_TIMEOUT=600
+
 # Install Python dependencies
 RUN uv pip install --system -r pyproject.toml
 

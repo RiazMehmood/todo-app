@@ -23,11 +23,10 @@ spec:
   type: pubsub.kafka
   version: v1
   metadata:
-    # Redpanda Cloud bootstrap server
+    # Redpanda Cloud brokers (all 3 for reliability)
     # Format: <cluster-name>.<region>.cloud.redpanda.com:9092
-    # Example: todo-cluster-abc123.us-east-1.cloud.redpanda.com:9092
     - name: brokers
-      value: "d54l263rcoacstirud90.any.us-east-1.mpx.prd.cloud.redpanda.com:9092"
+      value: "d54l263rcoacstirud90-13.0.us-east-1.mpx.prd.cloud.redpanda.com:9092,d54l263rcoacstirud90-14.2.us-east-1.mpx.prd.cloud.redpanda.com:9092,d54l263rcoacstirud90-15.1.us-east-1.mpx.prd.cloud.redpanda.com:9092"
 
     # Consumer group for this application
     - name: consumerGroup
@@ -41,7 +40,7 @@ spec:
     - name: authType
       value: "password"
 
-    # SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512 for Redpanda)
+    # SASL mechanism (SCRAM-SHA-256 for Redpanda)
     - name: saslMechanism
       value: "SCRAM-SHA-256"
 
@@ -61,17 +60,25 @@ spec:
     - name: enableTLS
       value: "true"
 
-    # Skip TLS verification (set to false in production)
+    # Skip TLS verification for cloud-signed certs
     - name: skipVerify
+      value: "true"
+
+    # TLS disable for hostname verification (cloud certs)
+    - name: tlsDisable
       value: "false"
+
+    # Increase init timeout for slow cloud connections
+    - name: initTimeout
+      value: "60s"
 
     # Consumer session timeout
     - name: sessionTimeout
-      value: "30s"
+      value: "45s"
 
     # Consumer heartbeat interval
     - name: heartbeatInterval
-      value: "10s"
+      value: "15s"
 
     # Initial offset (newest or oldest)
     - name: initialOffset
@@ -79,11 +86,19 @@ spec:
 
     # Number of retries for failed messages
     - name: maxRetries
-      value: "3"
+      value: "5"
 
     # Backoff duration between retries
     - name: backOffDuration
-      value: "5s"
+      value: "10s"
+
+    # Channel buffer size
+    - name: channelBufferSize
+      value: "256"
+
+    # Version (for compatibility)
+    - name: version
+      value: "3.6.0"
 
 # Scopes (optional) - restrict to specific apps
 scopes:

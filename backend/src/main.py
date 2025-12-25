@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import os
 
 from .db import create_db_and_tables
-from .routes import auth, tasks, chat
+from .routes import auth, tasks, chat, search, templates, bulk_operations, websocket
 
 # Import Phase III models for database registration
 from .models import (
@@ -122,6 +122,10 @@ def health_check():
 app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(chat.router, prefix="/api", tags=["chat"])
+app.include_router(search.router, prefix="/api", tags=["search"])
+app.include_router(templates.router, prefix="/api", tags=["templates"])
+app.include_router(bulk_operations.router, prefix="/api", tags=["bulk-operations"])
+app.include_router(websocket.router, tags=["websocket"])
 
 
 # Error handlers (optional)

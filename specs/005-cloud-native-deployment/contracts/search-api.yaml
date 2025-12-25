@@ -1,0 +1,425 @@
+openapi: 3.0.3
+info:
+  title: Todo App - Advanced Search API
+  description: API endpoints for advanced search, filtering, and saved searches
+  version: 1.0.0
+  contact:
+    name: Todo App Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://todo-app-production-be56.up.railway.app
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/{user_id}/tasks/search:
+    post:
+      summary: Advanced task search with filtering
+      description: |
+        Search tasks using full-text search with multi-criteria filtering.
+        Supports boolean operators, date ranges, and pagination.
+      operationId: searchTasks
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID (UUID)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Full-text search query (searches title and description)
+                  example: "meeting urgent"
+                  maxLength: 500
+                filters:
+                  type: object
+                  description: Additional filter criteria (all filters are AND combined)
+                  properties:
+                    status:
+                      type: array
+                      items:
+                        type: string
+                        enum: [pending, in_progress, completed]
+                      description: Filter by status (OR within array)
+                      example: ["pending", "in_progress"]
+                    priority:
+                      type: array
+                      items:
+                        type: string
+                        enum: [low, medium, high]
+                      description: Filter by priority (OR within array)
+                      example: ["high"]
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                      description: Filter by tags (tasks with ANY of these tags)
+                      example: ["work", "urgent"]
+                    created_after:
+                      type: string
+                      format: date
+                      description: Filter tasks created after this date (inclusive)
+                      example: "2025-12-01"
+                    created_before:
+                      type: string
+                      format: date
+                      description: Filter tasks created before this date (inclusive)
+                      example: "2025-12-23"
+                    due_before:
+                      type: string
+                      format: date
+                      description: Filter tasks due before this date
+                      example: "2025-12-31"
+                    due_after:
+                      type: string
+                      format: date
+                      description: Filter tasks due after this date
+                      example: "2025-12-20"
+                sort_by:
+                  type: string
+                  enum: [created_at, updated_at, due_date, priority, title, relevance]
+                  default: relevance
+                  description: Sort field (relevance only available when query is provided)
+                sort_order:
+                  type: string
+                  enum: [asc, desc]
+                  default: desc
+                  description: Sort direction
+                page:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Page number (1-indexed)
+                per_page:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 50
+                  description: Results per page
+            examples:
+              simple_search:
+                summary: Simple text search
+                value:
+                  query: "meeting"
+                  page: 1
+                  per_page: 50
+              complex_search:
+                summary: Complex multi-criteria search
+                value:
+                  query: "urgent"
+                  filters:
+                    status: ["pending", "in_progress"]
+                    priority: ["high"]
+                    tags: ["work"]
+                    created_after: "2025-12-01"
+                    due_before: "2025-12-31"
+                  sort_by: "due_date"
+                  sort_order: "asc"
+                  page: 1
+                  per_page: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total_count:
+                    type: integer
+                    description: Total number of tasks matching criteria
+                    example: 47
+                  page:
+                    type: integer
+                    example: 1
+                  per_page:
+                    type: integer
+                    example: 50
+                  total_pages:
+                    type: integer
+                    description: Total number of pages
+                    example: 1
+              examples:
+                search_results:
+                  summary: Example search results
+                  value:
+                    tasks:
+                      - id: "550e8400-e29b-41d4-a716-446655440000"
+                        user_id: "660e8400-e29b-41d4-a716-446655440001"
+                        title: "Urgent meeting preparation"
+                        description: "Prepare slides for client meeting"
+                        status: "pending"
+                        priority: "high"
+                        tags: ["work", "urgent"]
+                        created_at: "2025-12-20T10:00:00Z"
+                        updated_at: "2025-12-20T10:00:00Z"
+                        due_date: "2025-12-24T09:00:00Z"
+                    total_count: 47
+                    page: 1
+                    per_page: 50
+                    total_pages: 1
+        '400':
+          description: Invalid request (malformed query, invalid filters)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: "Invalid date format in created_after field"
+        '401':
+          description: Unauthorized (missing or invalid JWT token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/saved-searches:
+    get:
+      summary: List all saved searches for user
+      description: Retrieve all saved search queries for the authenticated user
+      operationId: listSavedSearches
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of saved searches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_searches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedSearch'
+              example:
+                saved_searches:
+                  - id: "770e8400-e29b-41d4-a716-446655440002"
+                    user_id: "660e8400-e29b-41d4-a716-446655440001"
+                    name: "Hot List"
+                    query_params:
+                      filters:
+                        status: ["pending", "in_progress"]
+                        priority: ["high"]
+                    created_at: "2025-12-15T10:00:00Z"
+                    updated_at: "2025-12-15T10:00:00Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new saved search
+      description: Save a search query with filters for future reuse
+      operationId: createSavedSearch
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - query_params
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Descriptive name for the saved search
+                  example: "High Priority Work Tasks"
+                query_params:
+                  type: object
+                  description: Search parameters (same format as /search endpoint body)
+                  properties:
+                    query:
+                      type: string
+                    filters:
+                      type: object
+                    sort_by:
+                      type: string
+                    sort_order:
+                      type: string
+                  example:
+                    query: ""
+                    filters:
+                      priority: ["high"]
+                      tags: ["work"]
+                      status: ["pending", "in_progress"]
+                    sort_by: "due_date"
+                    sort_order: "asc"
+      responses:
+        '201':
+          description: Saved search created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSearch'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Saved search with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/{user_id}/saved-searches/{search_id}:
+    delete:
+      summary: Delete a saved search
+      description: Remove a saved search by ID
+      operationId: deleteSavedSearch
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the saved search to delete
+      responses:
+        '204':
+          description: Saved search deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Saved search not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth authentication
+
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        recurring_pattern:
+          type: string
+          nullable: true
+        reminder:
+          type: object
+          nullable: true
+
+    SavedSearch:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        query_params:
+          type: object
+          description: Stored search parameters
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message

@@ -29,8 +29,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: todo-backend:latest
-        imagePullPolicy: IfNotPresent
+        image: riazmehmood/todo-backend:v1.0.5
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
           name: http
@@ -39,7 +39,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: db-secrets
-              key: databaseUrl
+              key: connection-string
         - name: KAFKA_ENABLED
           value: "true"
         - name: DAPR_HTTP_PORT
@@ -48,9 +48,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: api-secrets
-              key: betterAuthSecret
+              key: better-auth-secret
         - name: OPENAI_API_KEY
-          value: "sk-proj—vwQTMe_WYrkzmsL8YBjca3Ud_BrJWDK2b6_8EsD2SsRgX2cC4h_GXVYMbC2AClZMNJm4JoPN8T3BlbkFJHct_l-Rs3QoPzPF2x0mppLKvcFTng7mMdHhjLxEUZAXgKoLBr5DnXktipuSQ5p--vPSIcw9k4A"
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: openai-api-key
         livenessProbe:
           httpGet:
             path: /health

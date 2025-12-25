@@ -6,7 +6,7 @@ date: 2025-12-23
 surface: agent
 model: claude-sonnet-4.5
 feature: 005-cloud-native-deployment
-branch: 004-kubernetes-deployment
+branch: 005-cloud-native-deployment
 user: riaz
 command: continue with kafka deployment
 labels: ["kafka", "dapr", "kubernetes", "redpanda-cloud", "deployment", "infrastructure"]

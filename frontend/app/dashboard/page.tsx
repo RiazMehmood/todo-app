@@ -30,7 +30,7 @@ export default function DashboardPage() {
   async function loadTasks(userId: string, status: string = 'all') {
     setIsLoading(true);
     try {
-      const fetchedTasks = await api.getTasks(userId, status);
+      const fetchedTasks = await api.getTasks(userId, status !== 'all' ? { status: status as 'pending' | 'completed' } : undefined);
       setTasks(fetchedTasks);
     } catch (err) {
       console.error('Failed to load tasks:', err);
