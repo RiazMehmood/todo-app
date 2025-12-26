@@ -27,30 +27,21 @@ import {
   Message,
 } from './types';
 
-// API base URL from environment variable with runtime fallback
+// API base URL - use empty string for production (Next.js rewrites handle proxying)
 function getApiUrl(): string {
-  // Try environment variable first (set at build time in Vercel)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
-
-  // Runtime detection for production
+  // In production (Vercel), use empty string to leverage Next.js rewrites/proxy
+  // This avoids Mixed Content issues (HTTPS frontend calling HTTP backend)
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
 
-    // If deployed on Kubernetes (todo.local), use empty string (endpoints already have /api prefix)
-    if (hostname === 'todo.local' || hostname.includes('todo.local')) {
+    // Production deployments: use relative URLs (Next.js proxy handles backend call)
+    if (hostname.includes('vercel.app') || hostname === 'todo.local' || hostname.includes('todo.local')) {
       return '';
-    }
-
-    // If deployed on Vercel, use Railway backend
-    if (hostname.includes('vercel.app')) {
-      return 'https://todo-app-production-be56.up.railway.app';
     }
   }
 
-  // Default to localhost for local development
-  return 'http://localhost:8000';
+  // Local development: point directly to backend
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 }
 
 const API_URL = getApiUrl();
